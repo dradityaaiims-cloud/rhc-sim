@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Catheter, buildPath } from '../src/sim/catheter.js';
+import { Catheter, buildPath, DEPTH_SCALE } from '../src/sim/catheter.js';
 
 const drive = (c, cm, step = 0.2) => { for (let d = 0; d < Math.abs(cm); d += step) c.advance(Math.sign(cm) * step); };
 const floatTo = (c, site) => { if (!c.balloon) { drive(c, 14); c.toggleBalloon(); } for (let i = 0; i < 600 && c.site !== site; i++) c.advance(0.1); };
@@ -45,7 +45,7 @@ test('the balloon cannot be inflated inside the sheath', () => {
   drive(c, 14); assert.equal(c.toggleBalloon(), true);
 });
 test('insertion depths match the textbook landmarks (RIJ: RA ~20, wedge ~50)', () => {
-  const c = new Catheter('rij'), P = c.path, d = (s) => Math.round(P.offset + 1.09 * s);
+  const c = new Catheter('rij'), P = c.path, d = (s) => Math.round(P.offset + DEPTH_SCALE * s);
   assert.ok(Math.abs(d(P.raEntry) - 19) <= 2 && d(P.pv) >= 34 && d(P.pv) <= 40 && Math.abs(d(P.total) - 50) <= 2);
 });
 test('wedge timer counts only while wedged', () => {

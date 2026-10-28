@@ -8,12 +8,12 @@ export const SECTIONS = [
     id: 'start',
     title: 'Start here: using the simulator',
     blocks: [
-      { p: 'This simulator lets you float a balloon-tipped pulmonary artery catheter through a schematic right heart and watch the pressure waveform change as the tip moves. It is for education only: it is not a medical device and contains no patient data.' },
+      { p: 'This simulator lets you float a balloon-tipped pulmonary artery catheter through a real, anatomically segmented right heart and watch the pressure waveform change as the tip moves. It is for education only: it is not a medical device and contains no patient data.' },
       { h: 'The screen' },
       { ul: [
         'Left: the monitor. The green trace is the ECG; the yellow trace is the pressure at the catheter tip, on a fixed mmHg scale. An orange dashed line marks each change of site. Labels (a, c, x, v, y, EDP, notch) mark the parts of each wave; A turns them off.',
         'Below the monitor: the site, insertion depth, balloon state and the end-expiratory readings for the current site.',
-        'Right: a transparent 3D heart. Blue is the right heart and venae cavae, purple the pulmonary arteries, faint red the left heart and aorta. The yellow line is the catheter, the red dot its tip, and the orange sphere the inflated balloon. Drag to rotate, scroll to zoom.',
+        'Right: a transparent 3D heart from the NIH Human Reference Atlas (a real heart, CC BY 4.0). Blue is the right heart and venae cavae, purple the pulmonary arteries, faint red the left heart and aorta, white the tricuspid and pulmonary valves. The yellow line is the catheter, the red dot its tip, and the orange sphere the inflated balloon. Drag to rotate, scroll to zoom.',
         'Bottom: the mode panel (scenario, quiz, checklist, scores).',
       ] },
       { h: 'Controls' },

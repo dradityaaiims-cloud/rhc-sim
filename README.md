@@ -10,7 +10,7 @@ pulmonary valve → PA → wedge) and watch the pressure trace change beside it,
 
 > Educational use only. Not a medical device. Not for clinical decisions, procedure planning, assessment or exams. All cases are simulated. Never enter patient information.
 
-![Floating the catheter from the SVC to the wedge](docs/normal-float.jpg)
+![Wedged in severe mitral regurgitation: giant v waves beside the NIH Human Reference Atlas heart](docs/hra-heart-wedge.jpg)
 
 ## Run it
 
@@ -66,6 +66,13 @@ Every push to `main` runs the tests, builds and deploys to GitHub Pages (`.githu
 
 See [CITATION.cff](CITATION.cff) or the About page (APA and BibTeX). DOI: [10.5281/zenodo.23743411](https://doi.org/10.5281/zenodo.23743411).
 
+## 3D anatomy
+
+The heart and great vessels are derived from the NIH Human Reference Atlas (HuBMAP) 3D Reference Organs, Heart and
+Blood Vasculature, Male v1.2 (Visible Human Male, U.S. National Library of Medicine), **CC BY 4.0**, https://humanatlas.io.
+See [public/models/ATTRIBUTION.md](public/models/ATTRIBUTION.md) for the changes made. To rebuild the model, put the two
+source GLBs in `tools/hra-src/` and run `node tools/build-heart.mjs`.
+
 ## Licence
 
-MIT. See [LICENSE](LICENSE).
+MIT for the code. See [LICENSE](LICENSE). The 3D model in `public/models` is CC BY 4.0 (see above).

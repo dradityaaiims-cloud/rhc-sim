@@ -1,26 +1,14 @@
-// Balloon-tipped (Swan-Ganz style) catheter on a fixed path through a schematic right heart.
+import { PATH } from '../anatomy/heartModel.js';
+// Balloon-tipped (Swan-Ganz style) catheter on a fixed path through the right heart.
 // Pure logic, no rendering. Units: cm. Patient frame: x = patient left, y = superior, z = anterior,
 // origin near the centre of the heart.
 
-// Waypoints: each point's `site` is the chamber of the path from that point to the next.
-const DOWNSTREAM = [
-  { p: [-3.0, 0.2, 0.3], site: 'ra' },
-  { p: [-1.3, -1.0, 1.6], site: 'ra', mark: 'tv' },   // tricuspid valve
-  { p: [0.6, -2.2, 3.0], site: 'rv' },
-  { p: [2.2, -1.6, 3.6], site: 'rv' },
-  { p: [2.0, 1.2, 3.8], site: 'rv' },                 // RV outflow tract
-  { p: [1.4, 3.4, 3.1], site: 'rv', mark: 'pv' },     // pulmonary valve
-  { p: [1.5, 5.4, 1.6], site: 'pa' },                 // main PA
-  { p: [0.4, 6.4, 0.1], site: 'pa' },                 // bifurcation
-  { p: [-2.2, 6.4, -0.9], site: 'pa' },               // right PA
-  { p: [-5.0, 5.7, -1.4], site: 'pa', mark: 'wz' },   // start of the wedge zone (distal branch)
-  { p: [-7.2, 4.6, -1.7], site: 'pa' },
-];
+// Waypoints come from the NIH Human Reference Atlas heart (tools/build-heart.mjs): each point's `site`
+// is the chamber of the path from that point to the next; marks: ra (RA entry), tv, pv, wz (wedge zone).
+const DOWNSTREAM = PATH.downstream;
 export const ACCESS = {
-  rij: { name: 'Right internal jugular', offset: 6, start: 'svc',
-    pts: [{ p: [-4.6, 15, 0.2], site: 'svc' }, { p: [-3.6, 8, -0.4], site: 'svc' }, { p: [-3.3, 3.0, -0.1], site: 'svc', mark: 'ra' }] },
-  fem: { name: 'Right femoral vein', offset: 24, start: 'ivc',
-    pts: [{ p: [-2.4, -11, -1.2], site: 'ivc' }, { p: [-2.6, -6, -1.0], site: 'ivc' }, { p: [-2.9, -2.6, -0.4], site: 'ivc', mark: 'ra' }] },
+  rij: { name: 'Right internal jugular', offset: 6, start: 'svc', pts: PATH.rij },
+  fem: { name: 'Right femoral vein', offset: 19, start: 'ivc', pts: PATH.fem },
 };
 
 const add = (a, b) => a.map((v, i) => v + b[i]), sub = (a, b) => a.map((v, i) => v - b[i]), mul = (a, k) => a.map((v) => v * k);
@@ -47,7 +35,7 @@ export function buildPath(access) {
 }
 
 export const BALLOON_ML = 1.5;
-export const DEPTH_SCALE = 1.09;
+export const DEPTH_SCALE = 1; // real anatomy: path cm are body cm
 export const MIN_INFLATE_DEPTH = 15; // cm: inflate only once the tip is beyond the introducer sheath
 
 export const MAX_SLACK = 25;      // cm of catheter that can loop up in a chamber
@@ -81,7 +69,6 @@ export class Catheter {
     return ACCESS[this.access].start;
   }
   get wedged() { return this.site === 'pcw'; }
-  // the schematic heart is small, so path cm are stretched to give the textbook insertion depths
   get depth() { return Math.round(this.path.offset + DEPTH_SCALE * this.s + this.slack); }
 
   /** Move the tip by ds cm (negative = withdraw). Returns the notice if the move was limited. */
