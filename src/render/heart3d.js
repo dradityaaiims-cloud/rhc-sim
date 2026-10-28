@@ -3,22 +3,22 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { ORIGIN, PATH, LABELS } from '../anatomy/heartModel.js';
+import { ORIGIN, LABELS, EXT } from '../anatomy/heartModel.js';
 
 const BLUE = 0x5a8cff, RED = 0xff5a6e, PURPLE = 0x9b7bff, GREY = 0x9aa7b8, VALVE = 0xf2f5fa;
 const V = (a) => new THREE.Vector3(...a);
 // part id -> colour, resting opacity
 const LOOK = {
-  ra: [BLUE, 0.1], rv: [BLUE, 0.1], svc: [BLUE, 0.12], ivc: [BLUE, 0.12],
+  ra: [BLUE, 0.1], rv: [BLUE, 0.1], svc: [BLUE, 0.18], ivc: [BLUE, 0.16], bcv: [BLUE, 0.18], ivc2: [BLUE, 0.14], cil: [BLUE, 0.14], eil: [BLUE, 0.14],
   pa: [PURPLE, 0.12], rpa: [PURPLE, 0.12], lpa: [PURPLE, 0.1],
   la: [RED, 0.07], lv: [RED, 0.07], ao: [RED, 0.07], dao: [RED, 0.06], pvri: [RED, 0.07], pvrs: [RED, 0.07], pvli: [RED, 0.07], pvls: [RED, 0.07],
   septum: [GREY, 0.06], tv: [VALVE, 0.3], pv: [VALVE, 0.3], mv: [VALVE, 0.12], av: [VALVE, 0.12],
   // drawn here: the veins above and below the model, and the distal right PA branch where the balloon wedges
-  ext_svc: [BLUE, 0.12], ext_ivc: [BLUE, 0.12], branch: [PURPLE, 0.14],
+  ext_svc: [BLUE, 0.18], ext_ivc: [BLUE, 0.14], branch: [PURPLE, 0.14],
 };
 const CHAMBERS = ['ra', 'rv', 'la', 'lv'];
 // tip site -> parts to highlight
-const HIGHLIGHT = { svc: ['svc', 'ext_svc'], ivc: ['ivc', 'ext_ivc'], ra: ['ra'], rv: ['rv'], pa: ['pa', 'rpa'], puw: ['rpa', 'branch'], pcw: ['branch'], ow: ['branch'] };
+const HIGHLIGHT = { svc: ['svc', 'bcv', 'ext_svc'], ivc: ['ivc', 'ivc2', 'cil', 'eil', 'ext_ivc'], ra: ['ra'], rv: ['rv'], pa: ['pa', 'rpa'], puw: ['rpa', 'branch'], pcw: ['branch'], ow: ['branch'] };
 const TEXT = { ra: 'RA', rv: 'RV', la: 'LA', lv: 'LV', svc: 'SVC', ivc: 'IVC', pa: 'PA', rpa: 'RPA', lpa: 'LPA', ao: 'Ao', tv: 'Tricuspid', pv: 'Pulmonary valve' };
 
 export class Heart3D {
@@ -39,10 +39,8 @@ export class Heart3D {
     this.parts = {}; this.labels = [];
     for (const [id, text] of Object.entries(TEXT)) this.addLabel(text, V(LABELS[id]), ['la', 'lv', 'ao'].includes(id) ? 'lbl-l' : ['tv', 'pv'].includes(id) ? 'lbl-v' : '');
     // extensions beyond the HRA vessels, along the catheter route
-    const tube = (id, pts, r) => this.addPart(id, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map((w) => V(w.p))), 40, r, 16, false));
-    tube('ext_svc', PATH.rij.slice(0, 3), 0.75);
-    tube('ext_ivc', PATH.fem.slice(0, 3), 1.0);
-    tube('branch', PATH.downstream.slice(-3), 0.5);
+    // each starts inside the model vessel's end, along its axis and at its radius, so the lumen is continuous
+    for (const [id, e] of Object.entries(EXT)) this.addPart(id, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(e.pts.map(V)), 40, e.r, 16, false));
     this.loaded = new GLTFLoader().loadAsync(`${import.meta.env.BASE_URL}models/heart.glb`).then((g) => this.addModel(g.scene));
 
     this.cath = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshPhongMaterial({ color: 0xffe066, emissive: 0x332200 }));

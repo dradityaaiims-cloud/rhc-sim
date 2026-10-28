@@ -26,7 +26,7 @@ test('femoral access starts in the IVC', () => {
   assert.ok(c.depth > new Catheter('rij').path.offset + 40);
 });
 test('without the balloon the tip will not cross the tricuspid valve', () => {
-  const c = new Catheter('rij'); drive(c, 21);
+  const c = new Catheter('rij'); drive(c, 28);
   assert.equal(c.site, 'ra'); assert.match(c.notice, /balloon/i);
   drive(c, 20); assert.equal(c.site, 'ra'); assert.ok(c.depth > 40); assert.match(c.notice, /coiling/);
 });

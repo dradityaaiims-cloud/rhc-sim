@@ -13,12 +13,18 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 const io = new NodeIO();
 const doc = await io.read('tools/hra-src/VH_M_Heart.glb');
 mergeDocuments(doc, await io.read('tools/hra-src/VH_M_Blood_Vasculature.glb'));
+// the merge adds a second scene, and viewers load only the default one: move the vessels into the heart's scene
+const [scene, ...scenes] = doc.getRoot().listScenes();
+for (const sc of scenes) { for (const n of sc.listChildren()) scene.addChild(n); sc.dispose(); }
+doc.getRoot().setDefaultScene(scene);
 
 // part id -> HRA node name
 const KEEP = {
   ra: 'VH_M_right_cardiac_atrium', rv: 'VH_M_heart_right_ventricle', la: 'VH_M_left_cardiac_atrium', lv: 'VH_M_heart_left_ventricle',
   septum: 'VH_M_interventricular_septum', tv: 'VH_M_tricuspid_valve', pv: 'VH_M_pulmonary_valve', mv: 'VH_M_mitral_valve', av: 'VH_M_aortic_valve',
-  svc: 'VH_M_superior_vena_cava', ivc: 'VH_M_inferior_vena_cava_a', pa: 'VH_M_pulmonary_trunk', rpa: 'VH_M_pulmonary_artery_R', lpa: 'VH_M_pulmonary_artery_L',
+  svc: 'VH_M_superior_vena_cava', bcv: 'VH_M_brachiocephalic_vein_R',
+  ivc: 'VH_M_inferior_vena_cava_a', ivc2: 'VH_M_inferior_vena_cava_b', cil: 'VH_M_common_iliac_vein_R', eil: 'VH_M_external_iliac_vein_R',
+  pa: 'VH_M_pulmonary_trunk', rpa: 'VH_M_pulmonary_artery_R', lpa: 'VH_M_pulmonary_artery_L',
   ao: 'VH_M_ascending_aorta', dao: 'VH_M_descending_aorta_a',
   pvri: 'VH_M_pulmonary_vein_R_inf', pvrs: 'VH_M_pulmonary_vein_R_sup', pvli: 'VH_M_pulmonary_vein_L_inf', pvls: 'VH_M_pulmonary_vein_L_sup',
 };
@@ -33,59 +39,87 @@ function verts(node) {
   }
   return out;
 }
+const add = (a, b) => a.map((x, i) => x + b[i]), sub = (a, b) => a.map((x, i) => x - b[i]), mul = (a, k) => a.map((x) => x * k), lerp = (a, b, t) => add(a, mul(sub(b, a), t));
+const dist = (a, b) => Math.hypot(...sub(a, b)), norm = (a) => mul(a, 1 / Math.hypot(...a));
 const mean = (ps) => ps.reduce((a, p) => a.map((x, i) => x + p[i]), [0, 0, 0]).map((x) => x / ps.length);
-// principal axis by power iteration; centroids of the two end slabs (8%) along it
-function ends(ps) {
-  const c = mean(ps), q = ps.map((p) => p.map((x, i) => x - c[i]));
+
+/** Vessel centreline: slabs along the principal axis; each slab gives a centroid and a mean radius. */
+function centerline(ps, n) {
+  const c = mean(ps), q = ps.map((p) => sub(p, c));
   let a = [1, 1, 1];
   for (let k = 0; k < 30; k++) {
-    const n = [0, 0, 0];
-    for (const p of q) { const d = p[0] * a[0] + p[1] * a[1] + p[2] * a[2]; n[0] += d * p[0]; n[1] += d * p[1]; n[2] += d * p[2]; }
-    const l = Math.hypot(...n); a = n.map((x) => x / l);
+    const m = [0, 0, 0];
+    for (const p of q) { const d = p[0] * a[0] + p[1] * a[1] + p[2] * a[2]; m[0] += d * p[0]; m[1] += d * p[1]; m[2] += d * p[2]; }
+    a = norm(m);
   }
-  const pr = q.map((p) => p[0] * a[0] + p[1] * a[1] + p[2] * a[2]).sort((x, y) => x - y);
-  const lo = pr[Math.floor(pr.length * 0.08)], hi = pr[Math.floor(pr.length * 0.92)];
-  const sel = (f) => mean(q.map((p, i) => [p, p[0] * a[0] + p[1] * a[1] + p[2] * a[2]]).filter(([, d]) => f(d)).map(([p]) => p.map((x, i) => x + c[i])));
-  return [sel((d) => d <= lo), sel((d) => d >= hi)];
+  const d = q.map((p) => p[0] * a[0] + p[1] * a[1] + p[2] * a[2]), lo = d.reduce((m, x) => Math.min(m, x)), w = (d.reduce((m, x) => Math.max(m, x)) - lo) / n, out = [];
+  for (let k = 0; k < n; k++) {
+    const sl = ps.filter((_, i) => d[i] >= lo + k * w && d[i] <= lo + (k + 1) * w);
+    if (sl.length < 8) continue;
+    const ctr = mean(sl);
+    out.push({ p: ctr, r: sl.reduce((s, p) => s + dist(p, ctr), 0) / sl.length });
+  }
+  return out;
 }
+/** Laplacian smoothing of a chained route (ends fixed): slab centroids are noisy where vessels branch. */
+function smooth(ws, iters = 3) {
+  let p = ws.map((w) => w.p);
+  for (let k = 0; k < iters; k++) p = p.map((x, i) => (i === 0 || i === p.length - 1 ? x : mul(add(add(p[i - 1], p[i + 1]), mul(x, 2)), 0.25)));
+  return ws.map((w, i) => ({ ...w, p: p[i] }));
+}
+/** Orient a centreline so it starts at the end nearest `from`. */
+const orient = (cl, from) => (dist(cl[0].p, from) <= dist(cl.at(-1).p, from) ? cl : [...cl].reverse());
 
 const V = Object.fromEntries(Object.entries(KEEP).map(([k, n]) => [k, verts(byName.get(n))]));
 const all = Object.values(V).flat();
-const lo = [0, 1, 2].map((i) => Math.min(...all.map((p) => p[i]))), hi = [0, 1, 2].map((i) => Math.max(...all.map((p) => p[i])));
-const heartV = ['ra', 'rv', 'la', 'lv'].flatMap((k) => V[k]);
-const C = mean(heartV); // origin: centre of the four chambers
+const lo = [0, 1, 2].map((i) => all.reduce((m, p) => Math.min(m, p[i]), Infinity)), hi = [0, 1, 2].map((i) => all.reduce((m, p) => Math.max(m, p[i]), -Infinity));
+const C = mean(['ra', 'rv', 'la', 'lv'].flatMap((k) => V[k])); // origin: centre of the four chambers
 const cm = (p) => p.map((x, i) => +((x - C[i]) * 100).toFixed(2));
-const add = (a, b) => a.map((x, i) => x + b[i]), sub = (a, b) => a.map((x, i) => x - b[i]), mul = (a, k) => a.map((x) => x * k), lerp = (a, b, t) => add(a, mul(sub(b, a), t));
 
-// landmarks (m)
-const [svcA, svcB] = ends(V.svc), svcTop = svcA[1] > svcB[1] ? svcA : svcB, svcBot = svcTop === svcA ? svcB : svcA;
-const [ivcA, ivcB] = ends(V.ivc), ivcBot = ivcA[1] < ivcB[1] ? ivcA : ivcB, ivcTop = ivcBot === ivcA ? ivcB : ivcA;
 const raC = mean(V.ra), tvC = mean(V.tv), rvC = mean(V.rv), pvC = mean(V.pv);
-const [paA, paB] = ends(V.pa), paDist = Math.hypot(...sub(paA, pvC)) > Math.hypot(...sub(paB, pvC)) ? paA : paB;
-const [rpaA, rpaB] = ends(V.rpa), rpaEnd = rpaA[0] < rpaB[0] ? rpaA : rpaB, rpaStart = rpaEnd === rpaA ? rpaB : rpaA;
 const rvApex = V.rv.reduce((a, p) => (p[1] - p[0] * 0.3 < a[1] - a[0] * 0.3 ? p : a)); // inferior-leftward tip of the RV
-const branchDir = sub(rpaEnd, rpaStart).map((x, _, a) => x / Math.hypot(...a));
-const wedgeStart = add(rpaEnd, mul(add(branchDir, [0, -0.6, -0.2]), 0.012));   // into a lower-lobe branch beyond the HRA vessel
-const wedgeEnd = add(wedgeStart, mul(add(branchDir, [0, -0.9, -0.3]), 0.028));
+
+// venous routes, each vessel's centreline chained end to end
+const svc = orient(centerline(V.svc, 6), raC).reverse();                    // top -> RA
+const bcv = orient(centerline(V.bcv, 4), svc[0].p).reverse();              // lateral end -> SVC
+const ivc = orient(centerline(V.ivc, 6), raC).reverse();                    // bottom -> RA
+const ivc2 = orient(centerline(V.ivc2, 14), ivc[0].p).reverse();           // pelvis -> upper IVC
+const cil = orient(centerline(V.cil, 6), ivc2[0].p).reverse();
+const eil = orient(centerline(V.eil, 6), cil[0].p).reverse();               // groin -> common iliac
+const pa = orient(centerline(V.pa, 6), pvC);                                 // valve -> bifurcation
+const rpa = orient(centerline(V.rpa, 6), pa.at(-1).p);                      // bifurcation -> hilum
+
+// drawn continuations leave each model vessel along its own end tangent, at its own radius
+const tangent = (cl, atEnd) => (atEnd ? norm(sub(cl.at(-1).p, cl.at(-2).p)) : norm(sub(cl[0].p, cl[1].p)));
+const UP = [0, 1, 0], DOWN = [0, -1, 0];
+const ij0 = bcv[0].p, ijT = tangent(bcv, false);
+const ij1 = add(ij0, mul(norm(add(mul(ijT, 0.6), UP)), 0.035)), ij2 = add(ij1, mul(norm(add(mul(ijT, 0.1), UP)), 0.06));
+const fv0 = eil[0].p, fvT = tangent(eil, false);
+// a short common femoral segment below the inguinal ligament, where the vein is punctured
+const fv1 = add(fv0, mul(norm(add(fvT, mul(DOWN, 0.5))), 0.02)), fv2 = add(fv1, mul(norm(add(mul(fvT, 0.3), DOWN)), 0.025));
+const br0 = rpa.at(-1).p, brT = tangent(rpa, true);
+const br1 = add(br0, mul(brT, 0.012)), br2 = add(br1, mul(norm(add(brT, [0, -0.8, -0.3])), 0.036));
 
 const S = (p, site, mark) => ({ p: cm(p), site, ...(mark ? { mark } : {}) });
+const smoothed = (ws) => smooth(ws.map((w) => ({ ...w, p: w.p.map((x, i) => x / 100 + C[i]) }))).map((w) => ({ ...w, p: cm(w.p) }));
+const along = (cl, site) => cl.map((w) => S(w.p, site));
 const downstream = [
   S(raC, 'ra'),
   S(tvC, 'ra', 'tv'),
   S(lerp(tvC, rvApex, 0.45), 'rv'),
   S(lerp(rvC, rvApex, 0.2), 'rv'),
-  S(lerp(rvC, pvC, 0.55), 'rv'),                       // RV outflow tract
-  S(pvC, 'rv', 'pv'),
-  S(lerp(pvC, paDist, 0.55), 'pa'),
-  S(paDist, 'pa'),                                      // near the bifurcation
-  S(lerp(rpaStart, rpaEnd, 0.5), 'pa'),
-  S(rpaEnd, 'pa'),
-  S(wedgeStart, 'pa', 'wz'),
-  S(wedgeEnd, 'pa'),
+  S(lerp(rvC, pvC, 0.55), 'rv'),                                // RV outflow tract
+  // valve -> trunk -> right PA -> lower-lobe branch beyond the HRA vessel, smoothed through the bifurcation
+  ...smoothed([S(pvC, 'rv', 'pv'), ...along(pa.slice(1), 'pa'), ...along(rpa.slice(1), 'pa'), S(br1, 'pa', 'wz'), S(br2, 'pa')]),
 ];
-const up = [0, 1, 0];
-const rij = [S(add(svcTop, [-0.012, 0.075, 0.004]), 'svc'), S(add(svcTop, [-0.003, 0.03, 0]), 'svc'), S(svcTop, 'svc'), S(svcBot, 'svc', 'ra')];
-const fem = [S(add(ivcBot, [0.004, -0.09, 0]), 'ivc'), S(add(ivcBot, [0, -0.03, 0]), 'ivc'), S(ivcBot, 'ivc'), S(ivcTop, 'ivc', 'ra')];
+const rij = smoothed([S(ij2, 'svc'), S(ij1, 'svc'), ...along(bcv, 'svc'), ...along(svc.slice(0, -1), 'svc'), S(svc.at(-1).p, 'svc', 'ra')]);
+const fem = smoothed([S(fv2, 'ivc'), S(fv1, 'ivc'), ...along([...eil, ...cil, ...ivc2, ...ivc.slice(0, -1)], 'ivc'), S(ivc.at(-1).p, 'ivc', 'ra')]);
+const r = (x) => +(x * 100).toFixed(2);
+const ext = {
+  ext_svc: { pts: [ij2, ij1, ij0, bcv[1].p].map(cm), r: r(bcv[0].r * 0.9) },
+  ext_ivc: { pts: [fv2, fv1, fv0, eil[1].p].map(cm), r: r(eil[0].r * 0.9) },
+  branch: { pts: [rpa.at(-2).p, br0, br1, br2].map(cm), r: r(rpa.at(-1).r * 0.8) },
+};
 const labels = Object.fromEntries(['ra', 'rv', 'la', 'lv', 'svc', 'ivc', 'pa', 'rpa', 'lpa', 'ao', 'tv', 'pv'].map((k) => [k, cm(mean(V[k]))]));
 
 // simplify, keep only the parts, name them by id
@@ -111,6 +145,8 @@ export const PATH = {
 ${Object.entries({ downstream, rij, fem }).map(([k, v]) => `  ${k}: [\n${v.map((w) => `    ${JSON.stringify(w)},`).join('\n')}\n  ],`).join('\n')}
 };
 export const LABELS = ${JSON.stringify(labels)};
+// drawn continuations (cm): the internal jugular, femoral vein and distal right PA branch, matched to the model vessel ends
+export const EXT = ${JSON.stringify(ext)};
 export const BOUNDS = ${JSON.stringify({ min: cm(lo), max: cm(hi) })};
 `);
 console.log('triangles', tris, 'origin', C, 'bounds cm', cm(lo), cm(hi));

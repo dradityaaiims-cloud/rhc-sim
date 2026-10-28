@@ -48,7 +48,7 @@ export const SECTIONS = [
         ['Pulmonary artery', '40-45 cm', '50-60 cm'],
         ['Wedge', '~50 cm', '60-70 cm'],
       ] } },
-      { p: 'Left-sided approaches add about 5 cm, and a tall patient or a dilated RV may need more than 50 cm. If there is no RV trace by 40 to 45 cm or no PA trace by 50 to 55 cm (jugular), the catheter is probably coiling: deflate, withdraw to 20 cm and float again.' },
+      { p: 'The 3D heart here is from a tall adult man (the Visible Human Male), and the catheter follows his real veins, so from the femoral vein the RA is reached at about 47 cm and the wedge at about 75 cm, longer than the figures above. Left-sided approaches add about 5 cm, and a tall patient or a dilated RV may need more than 50 cm. If there is no RV trace by 40 to 45 cm or no PA trace by 50 to 55 cm (jugular), the catheter is probably coiling: deflate, withdraw to 20 cm and float again.' },
       { h: 'Good practice' },
       { ul: [
         'Zero the transducer to air and level it at the phlebostatic axis (fourth intercostal space, mid-axillary line, roughly the level of the left atrium).',

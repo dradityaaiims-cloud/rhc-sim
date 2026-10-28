@@ -7,8 +7,8 @@ import { PATH } from '../anatomy/heartModel.js';
 // is the chamber of the path from that point to the next; marks: ra (RA entry), tv, pv, wz (wedge zone).
 const DOWNSTREAM = PATH.downstream;
 export const ACCESS = {
-  rij: { name: 'Right internal jugular', offset: 6, start: 'svc', pts: PATH.rij },
-  fem: { name: 'Right femoral vein', offset: 19, start: 'ivc', pts: PATH.fem },
+  rij: { name: 'Right internal jugular', offset: 0, start: 'svc', pts: PATH.rij },
+  fem: { name: 'Right femoral vein', offset: 0, start: 'ivc', pts: PATH.fem },
 };
 
 const add = (a, b) => a.map((v, i) => v + b[i]), sub = (a, b) => a.map((v, i) => v - b[i]), mul = (a, k) => a.map((v) => v * k);
@@ -133,5 +133,5 @@ export class Catheter {
 /** Typical insertion depths for teaching (cm from the skin). */
 export const DEPTHS = {
   rij: { ra: '~20', rv: '30-35', pa: '40-45', pcw: '~50' },
-  fem: { ra: '30-40', rv: '40-50', pa: '50-60', pcw: '60-70' },
+  fem: { ra: '30-40, longer if tall', rv: '40-50, longer if tall', pa: '50-60, longer if tall', pcw: '60-70, longer if tall' },
 };
