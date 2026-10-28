@@ -1,0 +1,53 @@
+// Static "Model & limits" page (same role as the bronchoscopy and ventilator simulators').
+export const MODEL_HTML = `
+<div class="prose">
+<h2>How the model works</h2>
+<p>The waveform engine, catheter and scoring are plain JavaScript modules (<code>src/sim</code>, <code>src/modes/scoring.js</code>) with no rendering dependency and unit tests. The monitor and the 3D heart only draw their output. Coordinates are centimetres in one patient frame: <code>x</code> = patient left, <code>y</code> = superior, <code>z</code> = anterior.</p>
+
+<h3>Pressure waveforms</h3>
+<p>Each beat is timed from the ECG. For a heart rate the model sets the P wave, the QRS (PR 0.18 s), a QT from Bazett's formula (QTc 0.40 s) and the end of ejection at the end of the T wave (so the dicrotic notch and the v waves fall after it). Every site has a few keypoints placed on that timeline:</p>
+<table><tr><th>Site</th><th>Keypoints</th></tr>
+<tr><td>RA (and SVC / IVC)</td><td>a wave just after the P wave, c wave just after the QRS, x descent in mid-systole, v wave at the end of the T wave, y descent after the tricuspid valve opens, then a slow return to the diastasis level. The cavae show the same trace, damped.</td></tr>
+<tr><td>RV</td><td>Late diastolic rise with the atrial kick to the end-diastolic pressure at the QRS, systolic peak, a shoulder, an early diastolic minimum, then filling. In constriction the minimum is followed by a plateau (dip and plateau).</td></tr>
+<tr><td>PA</td><td>Diastolic minimum at valve opening, systolic peak, dicrotic notch at the end of ejection, a small rebound, then diastolic run-off.</td></tr>
+<tr><td>PCW</td><td>An atrial-type trace built from left atrial values, delayed by 0.1 s for transmission through the pulmonary veins and capillaries. There is no c wave.</td></tr></table>
+<p>The keypoints are joined by a periodic monotone cubic curve, so the trace is smooth but never overshoots a keypoint: a peak is exactly where the scenario puts it. Readings (systolic, diastolic, mean, a, v, RV EDP just before the QRS, end-diastolic wedge just after the a wave) are computed from one beat without respiration, as if taken at end-expiration. Spontaneous breathing (period 4.5 s) lowers all pressures by a few mmHg at peak inspiration, except the RA and cavae in constriction, which rise (Kussmaul sign); end-expiration is the peak of the swing. With the ventilator option a breath raises pressures, and end-expiration is the trough. PEEP effects on transmural pressure are not modelled. The ECG is a sum of Gaussian P, Q, R, S and T waves.</p>
+
+<h3>Scenarios</h3>
+<p>Eleven scenarios (normal, severe tricuspid regurgitation, severe mitral regurgitation, mitral stenosis, pre-capillary PH, isolated post-capillary PH, RV infarction, tamponade, constriction, atrial fibrillation, hypovolaemia) each set the heart rate, cardiac output and the keypoint values at every site. The seed values follow the author's research specification, which draws on RHC best-practice reviews and the 2022 ESC/ERS guidelines; they are illustrative and unvalidated. Displayed readings are computed from the generated waveform, so means are true time averages and differ by a mmHg or so from the PAd + (PAs − PAd)/3 estimate. Unit tests check every scenario against its seed values (within 2 mmHg) and its signature (for example diastolic equalisation within 5 mmHg in tamponade, PAPi below 0.9 in RV infarction).</p>
+
+<h3>Catheter and balloon</h3>
+<p>The catheter follows a fixed centreline from the right internal jugular or femoral vein through the cava, RA, tricuspid valve, RV, RV outflow tract, pulmonary valve and main PA into a distal right PA branch. Insertion depth is a fixed skin-to-cava offset plus the path length, scaled to the textbook depths (jugular: RA ~20, RV 30-35, PA 40-45, wedge ~50 cm; femoral about 10 to 15 cm more). The balloon can only be inflated beyond the introducer sheath (15 cm). Teaching rules, not mechanics, decide what happens: the tip only crosses the tricuspid and pulmonary valves with the balloon inflated (flow direction), an inflated balloon in the distal branch wedges and gives the PCW trace, deflating there gives the PA trace back, and an inflated balloon cannot be pulled back through a valve.</p>
+
+<h3>Wedge position, artefacts and coiling</h3>
+<p>With the balloon up in the distal branch there are three zones: 1 cm short of the wedge position gives an under-wedge (the PA and wedge traces averaged, so it is PA-like and above the PA diastolic), the wedge position gives the wedge trace, and pushing on gives an over-wedge (the pressure climbs from the wedge mean towards PA systolic + 5 with a 3 s time constant, without a or v waves). Monitoring artefacts act on the true pressure before it is drawn: overdamping is a first-order low-pass filter (time constant 0.12 s), underdamping a resonant second-order line (5 Hz, damping ratio 0.08), and catheter whip a decaying 12 Hz oscillation on each systolic upstroke in the PA or RV. Flushing clears damping; moving the catheter 1 cm clears whip; flushing while wedged is refused and penalised. If the catheter is pushed against a valve without the balloon, or (in TR and pre-capillary PH) on the first float with it, the tip stays put and the extra length is shown as a loop that adds to the depth; deflating and pulling back to the RA lets the next float succeed. Readings recorded during an artefact or a bad wedge are what the monitor showed, and are flagged in the score.</p>
+
+<h3>Atrial fibrillation</h3>
+<p>Atrial fibrillation removes the a waves (and the atrial bump before the RV EDP), makes the x descent shallower, replaces P waves with a low-amplitude fibrillatory baseline, and draws each RR interval at random between 0.65 and 1.35 times the mean (reproducible per scenario). Each beat is built for its own RR, with an 80 ms blend at the start of each beat so the trace stays continuous.</p>
+
+<h3>Calculations</h3>
+<p>Transpulmonary gradient TPG = mPAP − PCWP, diastolic pressure gradient DPG = PA diastolic − PCWP, PA pulsatility index PAPi = (PA systolic − PA diastolic) / RA, and PVR = TPG / cardiac output in Wood units, with the cardiac output given by the scenario as if measured by thermodilution. Pulmonary hypertension is classified with the 2022 ESC/ERS haemodynamic definitions (mPAP &gt; 20 mmHg; pre-capillary if PCWP ≤ 15 and PVR &gt; 2 WU; isolated post-capillary if PCWP &gt; 15 and PVR ≤ 2; combined if PCWP &gt; 15 and PVR &gt; 2).</p>
+
+<h3>3D heart</h3>
+<p>The chambers are ellipsoids and the vessels are tubes at schematic positions, drawn transparent so the catheter is always visible. They pulse with the simulated cardiac cycle. The chamber or vessel holding the tip is highlighted.</p>
+
+<h2>Limitations (read these)</h2>
+<ul>
+<li><b>Not validated for clinical use.</b> Nothing here has been clinically reviewed. It teaches concepts and the order of the procedure; it does not teach technique, device handling or safety, and it must not be used to plan, perform or interpret a real procedure.</li>
+<li><b>Schematic waveforms.</b> The traces are drawn from keypoints, not from a model of cardiac mechanics or fluid dynamics. Real traces vary widely between patients and change with rhythm, loading and ventilation.</li>
+<li><b>Schematic anatomy.</b> Chambers are ellipsoids and the catheter path is fixed. There is no catheter mechanics, looping, kinking, or wrong-way passage (for example into the hepatic veins, coronary sinus or left PA).</li>
+<li><b>Rhythm.</b> Sinus rhythm and atrial fibrillation only: no heart block (cannon a waves), ectopy or pacing.</li>
+<li><b>Simplified artefacts.</b> Whip, damping and bad wedges are drawn from simple filters and rules, not from catheter or fluid mechanics. Zeroing and levelling errors, wedge balloon volume, flush (square-wave) tests and PEEP transmission are not modelled.</li>
+<li><b>No left-heart pressures.</b> Mitral stenosis gradients and constriction-versus-restriction (inspiratory RV/LV discordance) need a simultaneous LV trace, which is not shown.</li>
+<li><b>No oxygen saturations or shunt runs.</b> Step-ups, Fick cardiac output and shunt fractions are not modelled; cardiac output is a given number.</li>
+<li><b>Simplified complications.</b> Valve injury, PA rupture and infarction are represented only by warnings and score penalties.</li>
+<li>Educational tool, not for assessment or exams. No data leaves your browser. Settings are stored in <code>localStorage</code> only.</li>
+</ul>
+
+<h2>Sources</h2>
+<ul>
+<li>Humbert M, Kovacs G, Hoeper MM, et al. 2022 ESC/ERS Guidelines for the diagnosis and treatment of pulmonary hypertension. Eur Heart J 2022;43:3618-3731 (haemodynamic definitions).</li>
+<li>Author's research specification for this simulator (2026), compiled from RHC best-practice reviews, Contemporary PAC Part 1, BJA Education, LITFL, StatPearls and EMCrit; its seed values are illustrative and unvalidated.</li>
+<li>Standard textbook descriptions of right heart catheterisation waveforms and normal values, as in Grossman &amp; Baim's Cardiac Catheterization, Angiography, and Intervention and Kern's The Cardiac Catheterization Handbook.</li>
+</ul>
+</div>`;

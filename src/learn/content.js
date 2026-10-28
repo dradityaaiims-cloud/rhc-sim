@@ -1,0 +1,166 @@
+// Learn-tab content as data. Block types:
+//   {p: 'text'}  {h: 'subheading'}  {ul: [...]}  {note: 'callout'}
+//   {table: {head: [...], rows: [[...]], go: colIndex?}}   (go => "Show in sim" button; the cell holds a scenario id)
+// Numbers are rounded textbook values for teaching. Not a substitute for primary references.
+
+export const SECTIONS = [
+  {
+    id: 'start',
+    title: 'Start here: using the simulator',
+    blocks: [
+      { p: 'This simulator lets you float a balloon-tipped pulmonary artery catheter through a schematic right heart and watch the pressure waveform change as the tip moves. It is for education only: it is not a medical device and contains no patient data.' },
+      { h: 'The screen' },
+      { ul: [
+        'Left: the monitor. The green trace is the ECG; the yellow trace is the pressure at the catheter tip, on a fixed mmHg scale. An orange dashed line marks each change of site. Labels (a, c, x, v, y, EDP, notch) mark the parts of each wave; A turns them off.',
+        'Below the monitor: the site, insertion depth, balloon state and the end-expiratory readings for the current site.',
+        'Right: a transparent 3D heart. Blue is the right heart and venae cavae, purple the pulmonary arteries, faint red the left heart and aorta. The yellow line is the catheter, the red dot its tip, and the orange sphere the inflated balloon. Drag to rotate, scroll to zoom.',
+        'Bottom: the mode panel (scenario, quiz, checklist, scores).',
+      ] },
+      { h: 'Controls' },
+      { table: { head: ['Key', 'What it does', 'In the cath lab'], rows: [
+        ['W / S (or ↑ / ↓)', 'Advance / withdraw (Shift = fine)', 'Push or pull the catheter at the sheath'],
+        ['B', 'Inflate / deflate the balloon', 'Inject or release about 1.5 mL of air'],
+        ['Enter', 'Record the reading (Do the RHC, Diagnose the case)', 'Freeze and measure at end-expiration'],
+        ['F', 'Freeze the monitor', 'Freeze the screen to measure'],
+        ['A / L', 'Wave labels / 3D labels on or off', ''],
+      ] } },
+      { note: 'The catheter is flow-directed. Inflate the balloon once the tip is in the right atrium, then advance: the blood flow carries it through the tricuspid and pulmonary valves. Always deflate before you pull back.' },
+      { h: 'Modes' },
+      { ul: [
+        'Free explore: choose a scenario and access site and float the catheter as often as you like.',
+        'Name that waveform: the catheter and the diagnosis are hidden. Name the site from the trace alone.',
+        'Do the RHC: float to the wedge and record RA, RV, PA and PCW. You get the calculations and a score for completeness, safety and time.',
+        'Diagnose the case: the same run on an unknown patient, then pick the diagnosis.',
+      ] },
+    ],
+  },
+  {
+    id: 'basics',
+    title: 'Right heart catheterisation',
+    blocks: [
+      { p: 'Right heart catheterisation (RHC) measures pressures in the right heart and pulmonary artery, the pulmonary capillary wedge pressure (an estimate of left atrial pressure) and cardiac output. It is the reference test for pulmonary hypertension and is used in heart failure, shock, valve disease, pericardial disease and transplant assessment.' },
+      { h: 'The catheter' },
+      { p: 'A balloon-tipped, flow-directed catheter (often called a Swan-Ganz catheter) is about 110 cm long, marked every 10 cm. The distal lumen at the tip transmits pressure through fluid to a transducer. The balloon behind the tip takes about 1.5 mL of air. Thermodilution catheters also have a proximal injection port and a thermistor near the tip.' },
+      { h: 'Access and typical depths' },
+      { table: { head: ['Site reached', 'Right internal jugular', 'Femoral vein'], rows: [
+        ['Right atrium', '~20 cm', '30-40 cm'],
+        ['Right ventricle', '30-35 cm', '40-50 cm'],
+        ['Pulmonary artery', '40-45 cm', '50-60 cm'],
+        ['Wedge', '~50 cm', '60-70 cm'],
+      ] } },
+      { p: 'Left-sided approaches add about 5 cm, and a tall patient or a dilated RV may need more than 50 cm. If there is no RV trace by 40 to 45 cm or no PA trace by 50 to 55 cm (jugular), the catheter is probably coiling: deflate, withdraw to 20 cm and float again.' },
+      { h: 'Good practice' },
+      { ul: [
+        'Zero the transducer to air and level it at the phlebostatic axis (fourth intercostal space, mid-axillary line, roughly the level of the left atrium).',
+        'Read pressures at end-expiration, when intrathoracic pressure is closest to zero.',
+        'Inflate only once the tip is beyond the introducer sheath (about 20 cm from the neck), slowly, up to 1.5 mL of air. 1.5 mL is a limit, not a target.',
+        'Keep the wedge to no more than about 4 breaths: record the PCWP, deflate passively (do not aspirate), and check the PA trace comes back. Never flush while wedged.',
+        'Never withdraw with the balloon inflated.',
+        'Watch the ECG in the RV: ventricular ectopy is common while the tip is there.',
+      ] },
+    ],
+  },
+  {
+    id: 'waves',
+    title: 'The waveforms, site by site',
+    blocks: [
+      { h: 'Right atrium (and venae cavae)' },
+      { ul: [
+        'a wave: atrial contraction. It follows the P wave on the ECG.',
+        'c wave: the tricuspid valve bulging back into the RA as the RV starts to contract, just after the QRS. Often small.',
+        'x descent: atrial relaxation and the valve ring pulled down during ventricular systole.',
+        'v wave: atrial filling against a closed tricuspid valve, peaking at about the end of the T wave.',
+        'y descent: the tricuspid valve opens and the atrium empties into the ventricle.',
+        'Normally the RA a wave is a little taller than the v wave. Normal mean RA pressure is 2 to 6 mmHg.',
+      ] },
+      { h: 'Right ventricle' },
+      { p: 'The systolic pressure jumps (normal 15 to 30 mmHg), but diastolic pressure falls to near zero and then rises through diastole to the end-diastolic pressure (EDP, normal 2 to 8), measured at the QRS just after the atrial kick. There is no dicrotic notch.' },
+      { h: 'Pulmonary artery' },
+      { p: 'Systolic pressure is the same as in the RV (unless there is pulmonary stenosis), but the diastolic pressure steps up (normal 4 to 12), because the closed pulmonary valve holds pressure in the artery. The dicrotic notch on the downstroke is valve closure. Normal mean PA pressure is up to 20 mmHg.' },
+      { h: 'Pulmonary capillary wedge' },
+      { p: 'With the balloon inflated in a distal branch, the column of blood beyond it reflects left atrial pressure. The trace looks atrial again, with a and v waves, but later after the ECG than the RA waves because the pressure travels through the pulmonary veins and capillaries. Normally the v wave is a little taller than the a wave. Normal mean PCWP is 6 to 12 mmHg (upper limit 15).' },
+      { p: 'Two numbers come off a wedge trace. The mean over the cardiac cycle (at end-expiration) is used for PH classification and PVR. The end-diastolic wedge, read just after the a wave and before the c wave, is the better estimate of LV end-diastolic pressure. The simulator shows both (mean and ED).' },
+      { note: 'Five criteria for an adequate wedge: (1) mean below PA diastolic, unless there are large v waves; (2) atrial waveform; (3) catheter stationary on fluoroscopy; (4) free flow on a flush test with the balloon deflated; (5) highly oxygenated blood from the wedged tip (about 97%; under 88% suggests under-wedging).' },
+      { h: 'Normal values' },
+      { table: { head: ['Site', 'Pressure (mmHg)'], rows: [
+        ['RA', 'mean 1-6'],
+        ['RV', 'systolic 15-25 (up to 30), EDP 1-8'],
+        ['PA', 'systolic 15-25 (up to 30), diastolic 4-12, mean 8-20'],
+        ['Wedge', 'mean 4-13 (upper limit 12-15 by source)'],
+        ['Cardiac output', '4-8 L/min (index 2.5-4.0 L/min/m²)'],
+        ['PVR', '0.3-2.0 Wood units'],
+        ['SvO₂ (PA sample)', '65-75%'],
+      ] } },
+    ],
+  },
+  {
+    id: 'pitfalls',
+    title: 'Pitfalls: bad wedges, artefacts, coiling',
+    blocks: [
+      { p: 'These are what make real tracings hard, and what Free explore (Artefact and Rhythm menus) and Diagnose the case let you practise.' },
+      { table: { head: ['Problem', 'Cause', 'Trace clue', 'Fix'], rows: [
+        ['Under-wedge', 'Tip too proximal; the balloon has not fully occluded the branch', 'PA-like, blunted, higher than the PA diastolic', 'Advance about 1 cm'],
+        ['Over-wedge', 'Tip too distal, against the wall', 'Pressure climbs steadily with no a or v waves', 'Withdraw about 1 cm'],
+        ['Catheter whip', 'The tip whipping in the PA', 'Sharp systolic spikes; systolic falsely high', 'Reposition 1 to 2 cm'],
+        ['Overdamping', 'Bubble, clot, kink, tip against the wall', 'Rounded peaks, no dicrotic notch; systolic low, diastolic high, mean about right', 'Flush; check the line'],
+        ['Underdamping', 'Long, compliant tubing; small bubbles', 'Ringing after each upstroke; systolic high, diastolic low', 'Flush; shorter, stiffer tubing'],
+        ['Coiling', 'Dilated RA or RV, or no balloon', 'Depth well past the landmark with no new waveform', 'Deflate, withdraw to about 20 cm, float again'],
+      ] } },
+      { note: 'Treat a wedge above the PA diastolic as a reason to look again, not an automatic failure: large v waves (for example in mitral regurgitation) can legitimately push the mean wedge above the PA diastolic.' },
+      { h: 'Atrial fibrillation' },
+      { p: 'With no organised atrial contraction there are no a waves in the RA or wedge, no atrial bump before the RV end-diastolic pressure, and no P waves on the ECG. The RR interval is irregularly irregular, so the PA diastolic and the v waves vary from beat to beat: average several beats.' },
+      { table: { head: ['Scenario', 'What to look for', 'Id'], go: 2, rows: [
+        ['Atrial fibrillation', 'No a waves, irregular beats, fibrillatory ECG baseline.', 'af'],
+        ['Severe TR (coils first)', 'A dilated RA: the first float coils, then giant cv waves.', 'tr'],
+        ['Pre-capillary PH (coils first)', 'A dilated RV: the first float may coil before the pulmonary valve.', 'pah'],
+      ] } },
+    ],
+  },
+  {
+    id: 'calc',
+    title: 'Calculations and pulmonary hypertension',
+    blocks: [
+      { table: { head: ['Measure', 'Formula', 'Normal'], rows: [
+        ['Transpulmonary gradient (TPG)', 'mPAP − PCWP', '< 12 mmHg'],
+        ['Diastolic pressure gradient (DPG)', 'PA diastolic − PCWP', '< 6 mmHg'],
+        ['Pulmonary vascular resistance (PVR)', '(mPAP − PCWP) / CO', '< 2 Wood units'],
+        ['Cardiac index', 'CO / body surface area', '2.5-4.0 L/min/m²'],
+        ['PA pulsatility index (PAPi)', '(PA systolic − PA diastolic) / RA', '> 2 (< 0.9 in RV infarction)'],
+      ] } },
+      { h: '2022 ESC/ERS definitions' },
+      { table: { head: ['Type', 'Haemodynamics'], rows: [
+        ['Pulmonary hypertension', 'mPAP > 20 mmHg'],
+        ['Pre-capillary PH', 'mPAP > 20, PCWP ≤ 15, PVR > 2 WU'],
+        ['Isolated post-capillary PH', 'mPAP > 20, PCWP > 15, PVR ≤ 2 WU'],
+        ['Combined post- and pre-capillary PH', 'mPAP > 20, PCWP > 15, PVR > 2 WU'],
+      ] } },
+      { p: 'Do the RHC mode calculates these from the readings you record and the cardiac output given for the scenario.' },
+    ],
+  },
+  {
+    id: 'patterns',
+    title: 'Scenarios and their patterns',
+    blocks: [
+      { table: { head: ['Scenario', 'What to look for', 'Id'], go: 2, rows: [
+        ['Normal', 'RA 5 with a > v, RV 24/4, PA 24/10 (mean 15), wedge 8 with v > a.', 'normal'],
+        ['Severe tricuspid regurgitation', 'Giant RA "cv" wave in systole, x descent lost, steep y descent; thermodilution output unreliable.', 'tr'],
+        ['Severe mitral regurgitation', 'Giant v wave on the wedge trace after the T wave; a clue, not a severity rule.', 'mr'],
+        ['Mitral stenosis', 'High mean wedge with a dominant a wave and slow y descent; secondary PH.', 'ms'],
+        ['RV infarction', 'High RA, low-normal PA, RA/PCWP ≥ 0.8, PAPi < 0.9, RV dip and rapid rise.', 'rvi'],
+        ['Pulmonary arterial hypertension', 'High RV and PA systolic, normal PCWP, high PVR, prominent RA a wave.', 'pah'],
+        ['Left heart failure', 'High PCWP transmitted to the PA, small DPG, normal PVR.', 'hf'],
+        ['Cardiac tamponade', 'RA, RVEDP, PA diastolic and PCWP all about equal; x descent kept, y descent blunted; tachycardia.', 'tamponade'],
+        ['Constrictive pericarditis', 'Equal diastolic pressures, M or W shaped RA (deep x and y), RV dip and plateau, RVEDP > 1/3 RV systolic, RA rises with inspiration (Kussmaul).', 'constriction'],
+        ['Hypovolaemia', 'Low pressures everywhere, tachycardia, low output.', 'hypovolemia'],
+      ] } },
+      { note: 'Tamponade versus constriction: both equalise diastolic pressures. In tamponade the y descent is blunted, because the ventricles cannot fill at all in early diastole. In constriction early filling is rapid and then stops abruptly, giving a deep y descent and the RV dip and plateau.' },
+    ],
+  },
+  {
+    id: 'model',
+    title: 'What this simulator models',
+    blocks: [
+      { p: 'Waveforms are built from keypoints timed to the ECG for each site and scenario, with simple respiratory variation. The catheter follows a fixed path, and teaching rules decide when it crosses a valve or wedges. See the Model & limits page for details and the list of things that are not modelled (arrhythmias, artefacts, saturations, catheter mechanics).' },
+    ],
+  },
+];
