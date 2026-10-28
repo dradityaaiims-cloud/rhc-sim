@@ -14,7 +14,7 @@ url: "https://dradityaaiims-cloud.github.io/rhc-sim/"
 keywords: [right heart catheterization, pulmonary artery catheter, hemodynamics, waveforms, medical education, simulation, three.js]
 references:
   - type: data
-    title: "3D Reference Organs for Heart and Blood Vasculature, Male, v1.2 (Human Reference Atlas)"
+    title: "3D Reference Organs for Heart, Blood Vasculature and Lung, Male, v1.2 (Human Reference Atlas)"
     authors:
       - name: "Human BioMolecular Atlas Program (HuBMAP)"
     url: "https://github.com/hubmapconsortium/ccf-releases/tree/main/v1.2/models"

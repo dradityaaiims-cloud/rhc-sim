@@ -189,3 +189,6 @@ button.mini { font-size: 0.8em; padding: 0.15em 0.6em; white-space: nowrap; }
 #notice { top: auto; bottom: 1.2em; max-width: 90%; white-space: normal; text-align: center; border-radius: 10px; }
 #modePanel { max-height: 36vh; overflow: auto; }
 #readout[hidden] { display: none; }
+#paneBtns { position: absolute; left: 0.8em; top: 0.8em; z-index: 3; display: flex; gap: 0.35em; }
+#paneBtns button { padding: 0.25em 0.7em; font-size: 0.85em; }
+#paneBtns button.on { border-color: var(--accent); }

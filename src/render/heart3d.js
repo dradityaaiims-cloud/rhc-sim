@@ -41,7 +41,18 @@ export class Heart3D {
     // extensions beyond the HRA vessels, along the catheter route
     // each starts inside the model vessel's end, along its axis and at its radius, so the lumen is continuous
     for (const [id, e] of Object.entries(EXT)) this.addPart(id, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(e.pts.map(V)), 40, e.r, 16, false));
-    this.loaded = new GLTFLoader().loadAsync(`${import.meta.env.BASE_URL}models/heart.glb`).then((g) => this.addModel(g.scene));
+    const loader = new GLTFLoader();
+    this.loaded = loader.loadAsync(`${import.meta.env.BASE_URL}models/heart.glb`).then((g) => this.addModel(g.scene));
+    // lungs: one light mesh (about 14k triangles), front faces only, loaded after the heart
+    this.lungs = null; this.lungsOn = true;
+    this.loaded.then(() => loader.loadAsync(`${import.meta.env.BASE_URL}models/lungs.glb`)).then((g) => {
+      const geoms = []; g.scene.scale.setScalar(100); g.scene.position.set(...ORIGIN.map((v) => -v * 100)); g.scene.updateMatrixWorld(true);
+      g.scene.traverse((o) => { if (o.isMesh) geoms.push(o.geometry.clone().applyMatrix4(o.matrixWorld)); });
+      const geom = geoms[0]; geom.computeVertexNormals();
+      this.lungs = new THREE.Mesh(geom, new THREE.MeshPhongMaterial({ color: 0xf2a7b8, transparent: true, opacity: 0.07, depthWrite: false, side: THREE.FrontSide, shininess: 20 }));
+      this.lungs.renderOrder = 0; this.lungs.visible = this.lungsOn;
+      this.scene.add(this.lungs);
+    }).catch(() => {});
 
     this.cath = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshPhongMaterial({ color: 0xffe066, emissive: 0x332200 }));
     this.balloon = new THREE.Mesh(new THREE.SphereGeometry(0.55, 24, 16), new THREE.MeshPhongMaterial({ color: 0xffb02e, transparent: true, opacity: 0.6, emissive: 0x331800 }));
@@ -88,8 +99,11 @@ export class Heart3D {
 
   setPath(path) { this.path = path; this.lastS = -1; }
 
-  resetView() { this.camera.position.set(5, 2, 33); this.controls.target.set(0, 0.5, -1); this.controls.update(); }
+  resetView() { // drop any leftover drag momentum, then put the camera back
+    this.controls.enableDamping = false; this.camera.position.set(5, 3, 50); this.controls.target.set(0, 1.5, -1); this.controls.update(); this.controls.enableDamping = true;
+  }
   setLabels(v) { this.labelsOn = v; this.labelsEl.hidden = !v; }
+  setLungs(v) { this.lungsOn = v; if (this.lungs) this.lungs.visible = v; }
 
   resize() {
     const w = this.mount.clientWidth || 1, h = this.mount.clientHeight || 1;

@@ -160,6 +160,7 @@ window.addEventListener('keydown', (e) => {
   else if (k === 'b') toggleBalloon();
   else if (k === 'r') reset();
   else if (k === 'x') flush();
+  else if (k === 'u') toggleLungs();
   else if (k === 'm') { const ids = Object.keys(modes); setMode(ids[(ids.indexOf(mode.id) + 1) % ids.length]); }
   else if (k === 'w' || k === 's' || k === 'Shift') { held.add(k); if (k !== 'Shift') flags.moved = true; }
 });
@@ -182,6 +183,8 @@ click('btnReset', reset);
 click('btnTour', runTour);
 click('btnHelp', () => toggleHelp(true));
 click('btnView', () => heart.resetView());
+const toggleLungs = () => { heart.setLungs(!heart.lungsOn); $('btnLungs').classList.toggle('on', heart.lungsOn); };
+click('btnLungs', toggleLungs);
 help.addEventListener('click', () => toggleHelp(false));
 document.querySelectorAll('#modeTabs button').forEach((b) => b.addEventListener('click', () => {
   if (b === learnTab) openLearn();

@@ -68,8 +68,8 @@ See [CITATION.cff](CITATION.cff) or the About page (APA and BibTeX). DOI: [10.52
 
 ## 3D anatomy
 
-The heart and great vessels are derived from the NIH Human Reference Atlas (HuBMAP) 3D Reference Organs, Heart and
-Blood Vasculature, Male v1.2 (Visible Human Male, U.S. National Library of Medicine), **CC BY 4.0**, https://humanatlas.io.
+The heart and great vessels are derived from the NIH Human Reference Atlas (HuBMAP) 3D Reference Organs, Heart,
+Blood Vasculature and Lung, Male v1.2 (Visible Human Male, U.S. National Library of Medicine), **CC BY 4.0**, https://humanatlas.io.
 See [public/models/ATTRIBUTION.md](public/models/ATTRIBUTION.md) for the changes made. To rebuild the model, put the two
 source GLBs in `tools/hra-src/` and run `node tools/build-heart.mjs`.
 
