@@ -23,6 +23,8 @@ export const SECTIONS = [
         ['B', 'Inflate / deflate the balloon', 'Inject or release about 1.5 mL of air'],
         ['Enter', 'Record the reading (Do the RHC, Diagnose the case)', 'Freeze and measure at end-expiration'],
         ['F', 'Freeze the monitor', 'Freeze the screen to measure'],
+        ['K', 'Caliper: a dotted line you drag across the monitor; it reads the time after the R wave and the pressure', 'Calipers on the frozen screen'],
+        ['P', 'Download a PDF report: readings, calculations, event log and waveform strips with time stamps', 'The printed haemodynamic record'],
         ['A / L', 'Wave labels / 3D labels on or off', ''],
       ] } },
       { note: 'The catheter is flow-directed. Inflate the balloon once the tip is in the right atrium, then advance: the blood flow carries it through the tricuspid and pulmonary valves. Always deflate before you pull back.' },

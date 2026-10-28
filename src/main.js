@@ -13,12 +13,19 @@ import { initBoba } from './ui/boba.js';
 import { startTour } from './ui/tour.js';
 import { renderAbout } from './pages/about.js';
 import { MODEL_HTML } from './pages/model.js';
+import { CONFIG } from './pages/config.js';
+import { Session, clock } from './report/session.js';
+import { buildReport } from './report/report.js';
+import { derive } from './sim/hemo.js';
+import { ACCESS } from './sim/catheter.js';
+import { ARTEFACTS } from './sim/artifacts.js';
 
 const $ = (id) => document.getElementById(id);
 const cath = new Catheter('rij');
 const monitor = new Monitor($('monitor'));
 const heart = new Heart3D($('heartMount'), $('heartLabels'));
 const tdx = new Transducer();
+const session = new Session();
 heart.setPath(cath.path);
 
 const flags = { usedFluoro: false, flushed: false, moved: false, balloonUsed: false, usedWaves: false, usedFreeze: false, openedLearn: false, recorded: false, changedScenario: false, toured: store.get('rhc.toured', false) };
@@ -26,6 +33,7 @@ let noticeTimer = null, lastNotice = null, lastNoticeAt = 0;
 let simT = 0, nextSample = 0, last = performance.now(), roAt = 0;
 let wavesOn = true, labelsOn = true, frozen = false;
 let mode = null;
+let lastLogSite = null;
 const app = {
   cath, flags, panel: $('modePanel'), sc: scenario('normal'), quiz: false, vent: false, afOverride: null,
   get af() { return this.afOverride ?? isAF(this.sc); },
@@ -38,9 +46,15 @@ const app = {
     this.sc = scenario(id); this.afOverride = null;
     cath.setCoil(this.sc.coil);
     monitor.setScale(scaleFor(this.sc)); monitor.clear(); nextSample = simT;
-    if (!keepPanel) mode?.afterScenario?.();
+    if (!keepPanel) { mode?.afterScenario?.(); this.newCase(); }
   },
-  setAccess(id) { cath.reset(id); heart.setPath(cath.path); monitor.clear(); nextSample = simT; },
+  setAccess(id) { cath.reset(id); heart.setPath(cath.path); monitor.clear(); nextSample = simT; this.newCase(); },
+  /** a fresh report: called when the scenario, access or mode changes */
+  newCase() {
+    session.reset(); lastLogSite = null;
+    session.event(simT, 'case', `Case started: ${mode?.id === 'case' ? 'unknown patient' : this.sc.name}, ${ACCESS[cath.access].name.toLowerCase()} access`);
+  },
+  log(kind, text) { session.event(simT, kind, text); },
   placeAt(site) {
     const P = cath.path;
     cath.reset();
@@ -69,6 +83,7 @@ function setMode(id) {
   $('hiddenCat').hidden = true;
   if (id !== 'quiz') { cath.reset(); monitor.clear(); nextSample = simT; }
   mode.enter();
+  app.newCase();
 }
 
 // ── learn tab, pages, tour, Boba ─────────────────────────────────────────
@@ -134,11 +149,16 @@ const toggleHelp = (v = help.hidden) => { help.hidden = !v; };
 const toggleWaves = () => { flags.usedWaves = true; wavesOn = !wavesOn; monitor.labelsOn = wavesOn && !app.quiz; $('btnWaves').classList.toggle('on', wavesOn); };
 const toggleLabels = () => { labelsOn = !labelsOn; heart.setLabels(labelsOn); $('readout').hidden = !labelsOn; $('btnLabels').classList.toggle('on', labelsOn); };
 const toggleFreeze = () => { flags.usedFreeze = true; frozen = !frozen; $('frozen').hidden = !frozen; $('btnFreeze').classList.toggle('on', frozen); };
-const toggleBalloon = () => { if (mode.locked?.()) return; flags.balloonUsed = true; cath.toggleBalloon(); if (cath.notice) app.notice(cath.notice); };
+const toggleBalloon = () => {
+  if (mode.locked?.()) return; flags.balloonUsed = true;
+  const was = cath.balloon; cath.toggleBalloon();
+  if (cath.notice) app.notice(cath.notice);
+  if (cath.balloon !== was) app.log('balloon', `Balloon ${cath.balloon ? 'inflated' : 'deflated'} at ${cath.depth} cm`);
+};
 const flush = () => {
   if (mode.locked?.()) return;
   flags.flushed = true;
-  const r = cath.flush(); app.notice(cath.notice);
+  const r = cath.flush(); app.notice(cath.notice); app.log('monitor', r === 'unsafe' ? 'Flush refused: balloon wedged' : 'Line flushed');
   if (r === 'unsafe') mode.onEvent?.('flushWedged');
 };
 const reset = () => { if (!mode.locked?.()) { cath.reset(); } };
@@ -163,6 +183,8 @@ window.addEventListener('keydown', (e) => {
   else if (k === 'x') flush();
   else if (k === 'u') toggleLungs();
   else if (k === 'v') toggleFluoro();
+  else if (k === 'k') toggleCaliper();
+  else if (k === 'p') downloadReport();
   else if (k === 'c') cycleCarm();
   else if (k === 'm') { const ids = Object.keys(modes); setMode(ids[(ids.indexOf(mode.id) + 1) % ids.length]); }
   else if (k === 'w' || k === 's' || k === 'Shift') { held.add(k); if (k !== 'Shift') flags.moved = true; }
@@ -189,16 +211,44 @@ click('btnView', () => heart.resetView());
 let fluoroSecs = 0;
 const carmBtns = Object.keys(CARM).map((v) => { const b = document.createElement('button'); b.textContent = v; b.onclick = (e) => { setCarm(v); e.currentTarget.blur(); }; $('carm').append(b); return b; });
 const chipHeart = () => { $('chipHeart').textContent = heart.mode === 'fluoro' ? `FLUORO · ${heart.view.toUpperCase()} · ${Math.floor(fluoroSecs / 60)}:${String(Math.floor(fluoroSecs % 60)).padStart(2, '0')}` : '3D HEART · AP VIEW'; };
-function setCarm(v) { heart.setView(v); carmBtns.forEach((b) => b.classList.toggle('active', b.textContent === v)); chipHeart(); }
+function setCarm(v) { if (heart.mode === 'fluoro' && v !== heart.view) app.log('monitor', `C-arm ${v}`); heart.setView(v); carmBtns.forEach((b) => b.classList.toggle('active', b.textContent === v)); chipHeart(); }
 function toggleFluoro() {
   flags.usedFluoro = true;
   const fl = heart.mode !== 'fluoro';
   heart.setMode(fl ? 'fluoro' : '3d');
   $('heartPane').classList.toggle('fluoro', fl); $('carm').hidden = !fl; $('btnFluoro').classList.toggle('on', fl);
   setCarm(heart.view);
+  app.log('monitor', fl ? `Fluoroscopy on (${heart.view})` : 'Fluoroscopy off');
 }
 const cycleCarm = () => { if (heart.mode !== 'fluoro') return; const v = Object.keys(CARM); setCarm(v[(v.indexOf(heart.view) + 1) % v.length]); };
 click('btnFluoro', toggleFluoro);
+const toggleCaliper = () => { monitor.caliper = monitor.caliper === null ? 0.5 : null; $('btnCaliper').classList.toggle('on', monitor.caliper !== null); };
+click('btnCaliper', toggleCaliper);
+async function downloadReport() {
+  const sc = app.sc, hidden = mode.id === 'case' && !mode.done;
+  const rec = mode.run?.recorded;
+  const visited = [...new Set(session.samples.map((s) => s.site))].filter((s) => ['ra', 'rv', 'pa', 'pcw'].includes(s));
+  const readings = rec ? Object.entries(rec) : visited.map((s) => [s, measure(sc, s, { af: app.af })]);
+  const byKey = Object.fromEntries(readings);
+  const d = derive(byKey, sc.co);
+  const info = {
+    title: 'Right heart catheterization: simulated haemodynamic report',
+    lines: [
+      `Dr. Singh's RHC Sim v${CONFIG.version} (doi:${CONFIG.doi}).  Generated ${new Date().toLocaleString()}.`,
+      `Case started ${session.startedAt.toLocaleTimeString()}, duration ${clock(session.duration)}.  Mode: ${document.querySelector(`#modeTabs [data-mode=${mode.id}]`).textContent}.`,
+      `Scenario: ${hidden ? 'hidden until you diagnose it' : sc.name}.  Access: ${ACCESS[cath.access].name}.  Rhythm: ${app.af ? 'atrial fibrillation' : 'sinus'} (${sc.hr}/min).  Breathing: ${app.vent ? 'ventilator' : 'spontaneous'}.  Fluoroscopy time ${clock(fluoroSecs)}.`,
+    ],
+    readings: readings.map(([k, m]) => [SITES[k].name, formatReading(m) + (mode.run?.flaws?.[k] ? '  (flagged: see the event log)' : '')]),
+    derived: d ? [['Cardiac output', `${sc.co.toFixed(1)} L/min (given)`], ['TPG = mPAP - PCWP', `${d.tpg} mmHg`], ['DPG = PAd - PCWP', `${d.dpg} mmHg`], ['PVR', `${d.pvr} WU`], ...(d.papi != null ? [['PAPi', `${d.papi}`]] : []), ['Interpretation', d.ph]] : [],
+  };
+  app.notice('Building the PDF report…');
+  const blob = await buildReport(info, session, monitor.scale);
+  const a = document.createElement('a'), stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
+  a.href = URL.createObjectURL(blob); a.download = `rhc-report-${stamp}.pdf`; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  app.notice('Report downloaded.');
+}
+click('btnReport', downloadReport);
 const toggleLungs = () => { heart.setLungs(!heart.lungsOn); $('btnLungs').classList.toggle('on', heart.lungsOn); };
 click('btnLungs', toggleLungs);
 help.addEventListener('click', () => toggleHelp(false));
@@ -240,6 +290,7 @@ function step(dt, now = performance.now()) {
     if (n && (n !== lastNotice || Date.now() - lastNoticeAt > 3000)) { // one event per push, not per frame
       mode.onEvent?.(/Deflate/.test(n) ? 'pullbacks' : /balloon/i.test(n) ? 'blocked' : 'other');
       app.notice(n); lastNotice = n; lastNoticeAt = Date.now();
+      app.log('note', n.split(/(?<=\.) /)[0]);
     }
   }
   if (!frozen) {
@@ -251,7 +302,10 @@ function step(dt, now = performance.now()) {
       const af = app.af, t = nextSample;
       if (tdx.kind !== cath.artefact) tdx.set(cath.artefact);
       const p = tdx.step(pressureAt(app.sc, site, t, { vent: app.vent, af, owSecs: cath.owSecs }), 1 / FS, systoleAge(app.sc, t, { af }), site);
-      monitor.push({ t, ecg: ecgAt(app.sc, t, { af }), p, site }, labelsIn(app.sc, site, t - 1 / FS, t, { af }));
+      const smp = { t, ecg: ecgAt(app.sc, t, { af }), p, site };
+      monitor.push(smp, labelsIn(app.sc, site, t - 1 / FS, t, { af }));
+      session.push(smp);
+      if (SITES[site].short !== lastLogSite) { lastLogSite = SITES[site].short; if (!app.quiz) session.event(t, 'site', `${SITES[site].short === 'PCW' && site !== 'pcw' ? 'PCW? (balloon in the wedge zone)' : SITES[site].name} at ${cath.depth} cm`); }
     }
     mode.update(dt);
   }
@@ -262,7 +316,7 @@ function step(dt, now = performance.now()) {
   if (now - roAt > 150) { roAt = now; readout(); }
 }
 
-if (import.meta.env.DEV) window.__rhc = { step, app, cath, monitor, heart, setMode, modes, boba, flags, openPage, runTour };
+if (import.meta.env.DEV) window.__rhc = { session, downloadReport, step, app, cath, monitor, heart, setMode, modes, boba, flags, openPage, runTour };
 setMode('explore');
 requestAnimationFrame(frame);
 if (!flags.toured) setTimeout(runTour, 500);

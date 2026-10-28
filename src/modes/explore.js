@@ -17,7 +17,7 @@ export class ExploreMode {
     const br = el('select', { 'aria-label': 'Breathing', onchange: (e) => { app.vent = e.target.value === 'vent'; e.target.blur(); } },
       el('option', { value: 'spont' }, 'Spontaneous'), el('option', { value: 'vent' }, 'Ventilator'));
     br.value = app.vent ? 'vent' : 'spont';
-    const art = el('select', { 'aria-label': 'Artefact', onchange: (e) => { app.cath.setArtefact(e.target.value); e.target.blur(); } },
+    const art = el('select', { 'aria-label': 'Artefact', onchange: (e) => { app.cath.setArtefact(e.target.value); app.log('monitor', `Artefact: ${ARTEFACTS[e.target.value].name}`); e.target.blur(); } },
       Object.entries(ARTEFACTS).map(([k, a]) => el('option', { value: k }, a.name)));
     art.value = app.cath.artefact;
     const rh = el('select', { 'aria-label': 'Rhythm', onchange: (e) => { app.afOverride = e.target.value === 'af'; e.target.blur(); } },

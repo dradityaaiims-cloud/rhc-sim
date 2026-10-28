@@ -5,10 +5,27 @@ import { SITES } from '../sim/hemo.js';
 const SWEEP = 6;    // seconds across the screen
 const GAP = 0.18;   // erase bar ahead of the sweep head (s)
 
+/** Time of the last R wave (ECG local maximum above 0.7 mV) at or before t, within 2 s, or null. */
+export function rPeakBefore(samples, t) {
+  for (let i = samples.length - 2; i > 0; i--) {
+    const s = samples[i];
+    if (s.t > t) continue;
+    if (s.t < t - 2) break;
+    if (s.ecg > 0.7 && s.ecg >= samples[i - 1].ecg && s.ecg >= samples[i + 1].ecg) return s.t;
+  }
+  return null;
+}
+
 export class Monitor {
   constructor(canvas) {
     this.cv = canvas; this.ctx = canvas.getContext('2d');
     this.samples = []; this.marks = []; this.scale = 40; this.labelsOn = true; this.sitesOn = true;
+    this.caliper = null; // x of the caliper line as a fraction of the plot width, or null when off
+    // drag the caliper anywhere on the trace (mouse or touch)
+    const at = (e) => { const r = canvas.getBoundingClientRect(), pad = 44; return Math.min(1, Math.max(0, (e.clientX - r.left - pad) / (r.width - pad - 8))); };
+    canvas.addEventListener('pointerdown', (e) => { if (this.caliper === null) return; this.caliper = at(e); canvas.setPointerCapture(e.pointerId); this.dragging = true; });
+    canvas.addEventListener('pointermove', (e) => { if (this.dragging) this.caliper = at(e); });
+    for (const ev of ['pointerup', 'pointercancel']) canvas.addEventListener(ev, () => { this.dragging = false; });
     new ResizeObserver(() => this.resize()).observe(canvas);
     this.resize();
   }
@@ -87,5 +104,23 @@ export class Monitor {
     // sweep head
     ctx.fillStyle = '#03080a'; const hx = xOf(now);
     ctx.fillRect(hx + 1, 0, (GAP / SWEEP) * (W - pad), H);
+    if (this.caliper !== null) this.drawCaliper(live, xOf, yP, pad, H);
+  }
+
+  /** Dotted vertical line through the ECG and the pressure; reads the time since the last R wave and the pressure. */
+  drawCaliper(live, xOf, yP, pad, H) {
+    const { ctx, dpr } = this, W = this.cv.width, cx = pad + this.caliper * (W - pad - 8 * dpr);
+    ctx.strokeStyle = '#e8eef6'; ctx.lineWidth = 1.2 * dpr; ctx.setLineDash([3 * dpr, 4 * dpr]);
+    ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke(); ctx.setLineDash([]);
+    let s = null, best = Infinity;
+    for (const q of live) { const d = Math.abs(xOf(q.t) - cx); if (d < best) { best = d; s = q; } }
+    if (!s || best > 6 * dpr) return;
+    const r = rPeakBefore(this.samples, s.t); // all kept samples: the R wave may already be off the left of the sweep
+    const text = `${r !== null ? `R + ${Math.round((s.t - r) * 1000)} ms · ` : ''}${s.p.toFixed(0)} mmHg (${SITES[s.site].short})`;
+    ctx.font = `600 ${12 * dpr}px ui-monospace, Menlo, monospace`;
+    const w = ctx.measureText(text).width + 12 * dpr, bx = Math.min(W - w - 4 * dpr, Math.max(pad, cx - w / 2));
+    ctx.fillStyle = '#0b1119ee'; ctx.fillRect(bx, 4 * dpr, w, 20 * dpr);
+    ctx.fillStyle = '#e8eef6'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(text, bx + 6 * dpr, 14 * dpr);
+    ctx.fillStyle = '#ffd23f'; ctx.beginPath(); ctx.arc(cx, yP(s.p), 3.5 * dpr, 0, 2 * Math.PI); ctx.fill();
   }
 }

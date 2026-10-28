@@ -25,6 +25,7 @@ export class ProcedureMode {
     const m = this.app.reading(site), art = this.app.cath.artefact;
     // the monitor records what it shows; a bad wedge or an uncorrected artefact is kept, and flagged at the end
     this.run.recorded[key] = m;
+    this.app.log('record', `Recorded ${SITES[key].short}: ${formatReading(m)}`);
     if (key !== site) this.run.flaws[key] = `${SITES[site].real}: the wedge you recorded was not valid.`;
     else if (art !== 'none' && !(art === 'whip' && site !== 'pa' && site !== 'rv')) this.run.flaws[key] = `${ARTEFACTS[art].name} trace when you recorded the ${SITES[key].short}. ${ARTEFACTS[art].fix}`;
     else delete this.run.flaws[key];
