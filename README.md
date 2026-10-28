@@ -4,6 +4,8 @@ An open, browser-based **right heart catheterization waveform simulator** for st
 Float a balloon-tipped catheter through a transparent 3D heart (SVC or IVC → RA → tricuspid valve → RV →
 pulmonary valve → PA → wedge) and watch the pressure trace change beside it, beat by beat, against the ECG.
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23743411.svg)](https://doi.org/10.5281/zenodo.23743411)
+
 **Live:** https://dradityaaiims-cloud.github.io/rhc-sim/
 
 > Educational use only. Not a medical device. Not for clinical decisions, procedure planning, assessment or exams. All cases are simulated. Never enter patient information.
@@ -62,7 +64,7 @@ Every push to `main` runs the tests, builds and deploys to GitHub Pages (`.githu
 
 ## Cite
 
-See [CITATION.cff](CITATION.cff) or the About page (APA and BibTeX). A Zenodo DOI is minted for each GitHub release.
+See [CITATION.cff](CITATION.cff) or the About page (APA and BibTeX). DOI: [10.5281/zenodo.23743411](https://doi.org/10.5281/zenodo.23743411).
 
 ## Licence
 

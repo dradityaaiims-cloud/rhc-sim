@@ -2,7 +2,7 @@
 export const CONFIG = {
   version: '0.1.0',
   year: 2026,
-  doi: '', // add once the release is archived (e.g. on Zenodo)
+  doi: '10.5281/zenodo.23743411',
   title: "Dr. Singh's RHC Simulator: an open educational right heart catheterization waveform simulator",
   // Contact email split so it is not plain text in the page source (reduces scraping).
   emailUser: 'draditya.aiims',

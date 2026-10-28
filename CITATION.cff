@@ -4,6 +4,7 @@ title: "Dr. Singh's RHC Simulator: an open educational right heart catheterizati
 type: software
 version: 0.1.0
 date-released: 2026-10-28
+doi: 10.5281/zenodo.23743411
 license: MIT
 authors:
   - family-names: Singh
