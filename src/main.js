@@ -3,7 +3,7 @@ import { scenario, scaleFor, pressureAt, ecgAt, labelsIn, measure, formatReading
 import { Transducer, measureWith } from './sim/artifacts.js';
 import { Catheter, DEPTHS } from './sim/catheter.js';
 import { Monitor } from './render/monitor.js';
-import { Heart3D } from './render/heart3d.js';
+import { Heart3D, CARM } from './render/heart3d.js';
 import { store } from './ui/dom.js';
 import { ExploreMode } from './modes/explore.js';
 import { QuizMode } from './modes/quiz.js';
@@ -21,7 +21,7 @@ const heart = new Heart3D($('heartMount'), $('heartLabels'));
 const tdx = new Transducer();
 heart.setPath(cath.path);
 
-const flags = { flushed: false, moved: false, balloonUsed: false, usedWaves: false, usedFreeze: false, openedLearn: false, recorded: false, changedScenario: false, toured: store.get('rhc.toured', false) };
+const flags = { usedFluoro: false, flushed: false, moved: false, balloonUsed: false, usedWaves: false, usedFreeze: false, openedLearn: false, recorded: false, changedScenario: false, toured: store.get('rhc.toured', false) };
 let noticeTimer = null, lastNotice = null, lastNoticeAt = 0;
 let simT = 0, nextSample = 0, last = performance.now(), roAt = 0;
 let wavesOn = true, labelsOn = true, frozen = false;
@@ -108,6 +108,7 @@ function runTour() {
     { title: 'Advance', target: '#drive', text: 'Hold W (or the Advance button) to advance, S to withdraw. Shift is fine control.', tryText: 'advance into the right atrium', enter: () => cath.reset(), done: () => cath.site === 'ra' },
     { title: 'Inflate the balloon', target: '#btnBalloon', text: 'The catheter is flow-directed: once the tip is in the RA, inflate the balloon (B) and the blood flow will carry it through the valves.', tryText: 'press B', done: () => cath.balloon },
     { title: 'Float to the wedge', target: '#monitorPane', text: 'Keep advancing and watch the trace: RA, then RV (diastolic near zero), then PA (diastolic steps up), then the wedge (atrial-looking again).', tryText: 'reach the wedge position', done: () => cath.site === 'pcw' },
+    { title: 'Fluoroscopy', target: '#btnFluoro', text: 'Switch the right pane to a simulated fluoroscopy image (V), and pick the C-arm view: AP, RAO 30°, LAO 45° or lateral (C cycles them). The catheter is radiopaque; the inflated balloon is a small lucent bubble.' },
     { title: 'Wave labels and freeze', target: '.tools', text: 'A turns the wave labels on and off, L the 3D labels, F freezes the monitor so you can study a beat. R pulls the catheter back to the start. Remember to deflate before withdrawing.' },
     { title: 'Modes', target: '#modeTabs', text: 'Free explore: any scenario. Name that waveform: identify the site from the trace alone. Do the RHC: record every site and get the calculations and a score. Diagnose the case: an unknown patient. M cycles modes.' },
     { title: 'Mode panel', target: '#modePanel', text: 'Scenarios, questions, the recording checklist, calculations and scores appear here.' },
@@ -161,6 +162,8 @@ window.addEventListener('keydown', (e) => {
   else if (k === 'r') reset();
   else if (k === 'x') flush();
   else if (k === 'u') toggleLungs();
+  else if (k === 'v') toggleFluoro();
+  else if (k === 'c') cycleCarm();
   else if (k === 'm') { const ids = Object.keys(modes); setMode(ids[(ids.indexOf(mode.id) + 1) % ids.length]); }
   else if (k === 'w' || k === 's' || k === 'Shift') { held.add(k); if (k !== 'Shift') flags.moved = true; }
 });
@@ -183,6 +186,19 @@ click('btnReset', reset);
 click('btnTour', runTour);
 click('btnHelp', () => toggleHelp(true));
 click('btnView', () => heart.resetView());
+let fluoroSecs = 0;
+const carmBtns = Object.keys(CARM).map((v) => { const b = document.createElement('button'); b.textContent = v; b.onclick = (e) => { setCarm(v); e.currentTarget.blur(); }; $('carm').append(b); return b; });
+const chipHeart = () => { $('chipHeart').textContent = heart.mode === 'fluoro' ? `FLUORO · ${heart.view.toUpperCase()} · ${Math.floor(fluoroSecs / 60)}:${String(Math.floor(fluoroSecs % 60)).padStart(2, '0')}` : '3D HEART · AP VIEW'; };
+function setCarm(v) { heart.setView(v); carmBtns.forEach((b) => b.classList.toggle('active', b.textContent === v)); chipHeart(); }
+function toggleFluoro() {
+  flags.usedFluoro = true;
+  const fl = heart.mode !== 'fluoro';
+  heart.setMode(fl ? 'fluoro' : '3d');
+  $('heartPane').classList.toggle('fluoro', fl); $('carm').hidden = !fl; $('btnFluoro').classList.toggle('on', fl);
+  setCarm(heart.view);
+}
+const cycleCarm = () => { if (heart.mode !== 'fluoro') return; const v = Object.keys(CARM); setCarm(v[(v.indexOf(heart.view) + 1) % v.length]); };
+click('btnFluoro', toggleFluoro);
 const toggleLungs = () => { heart.setLungs(!heart.lungsOn); $('btnLungs').classList.toggle('on', heart.lungsOn); };
 click('btnLungs', toggleLungs);
 help.addEventListener('click', () => toggleHelp(false));
@@ -229,6 +245,7 @@ function step(dt, now = performance.now()) {
   if (!frozen) {
     simT += dt;
     cath.tick(dt);
+    if (heart.mode === 'fluoro') { fluoroSecs += dt; chipHeart(); }
     for (; nextSample <= simT; nextSample += 1 / FS) {
       const site = cath.site;
       const af = app.af, t = nextSample;

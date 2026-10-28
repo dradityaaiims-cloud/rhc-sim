@@ -27,7 +27,7 @@ test('waveform questions use recordable sites and real scenarios', () => {
 });
 
 const ctx = (o = {}) => ({ t: 10, mode: 'explore', site: 'svc', balloon: false, notice: null, wedgeSecs: 0, scenario: 'normal', artefact: 'none', af: false, slack: 0,
-  flags: { moved: true, balloonUsed: true, usedWaves: true, usedFreeze: true, openedLearn: true, toured: true, changedScenario: true, recorded: true }, quiz: null, ...o });
+  flags: { usedFluoro: true, moved: true, balloonUsed: true, usedWaves: true, usedFreeze: true, openedLearn: true, toured: true, changedScenario: true, recorded: true }, quiz: null, ...o });
 test('Boba stays quiet for a calm, experienced user', () => { assert.equal(nextRule(ctx(), new Map(), Date.now()), null); });
 test('Boba warns about a long wedge first', () => { assert.equal(nextRule(ctx({ site: 'pcw', wedgeSecs: 25 }), new Map(), Date.now())?.id, 'wedge-long'); });
 test('Boba explains flow direction when the tip curls', () => {

@@ -14,6 +14,7 @@ export const SECTIONS = [
         'Left: the monitor. The green trace is the ECG; the yellow trace is the pressure at the catheter tip, on a fixed mmHg scale. An orange dashed line marks each change of site. Labels (a, c, x, v, y, EDP, notch) mark the parts of each wave; A turns them off.',
         'Below the monitor: the site, insertion depth, balloon state and the end-expiratory readings for the current site.',
         'Right: a transparent 3D heart from the NIH Human Reference Atlas (a real heart, CC BY 4.0). Blue is the right heart and venae cavae, purple the pulmonary arteries, faint red the left heart and aorta, white the tricuspid and pulmonary valves. The yellow line is the catheter, the red dot its tip, and the orange sphere the inflated balloon. Drag to rotate, scroll to zoom.',
+        'Fluoroscopy (V, or the Fluoro button): the right pane becomes a simulated X-ray image from a C-arm. The radiopaque catheter is dark, the heart a grey shadow, the lungs lucent, and the inflated balloon a small lucent bubble. Choose AP, RAO 30°, LAO 45° or lateral (C cycles them). The timer counts fluoroscopy time, as on a real console.',
         'Bottom: the mode panel (scenario, quiz, checklist, scores).',
       ] },
       { h: 'Controls' },
@@ -49,6 +50,14 @@ export const SECTIONS = [
         ['Wedge', '~50 cm', '60-70 cm'],
       ] } },
       { p: 'The 3D heart here is from a tall adult man (the Visible Human Male), and the catheter follows his real veins, so from the femoral vein the RA is reached at about 47 cm and the wedge at about 75 cm, longer than the figures above. Left-sided approaches add about 5 cm, and a tall patient or a dilated RV may need more than 50 cm. If there is no RV trace by 40 to 45 cm or no PA trace by 50 to 55 cm (jugular), the catheter is probably coiling: deflate, withdraw to 20 cm and float again.' },
+      { h: 'Fluoroscopy views' },
+      { ul: [
+        'AP: the catheter comes down the right heart border (SVC, RA), crosses to the left over the spine into the RV, then turns up and right into the PA; the wedge position is usually out in the right lower zone.',
+        'RAO 30°: the RV is seen in profile, so the loop from the RA through the RV and up the outflow tract opens out. Useful to see the catheter cross the tricuspid valve and climb the outflow tract.',
+        'LAO 45°: separates the right and left sides of the heart; the catheter in the RV lies anterior and to the left of the spine.',
+        'Lateral: shows how anterior (RV outflow tract) or posterior (pulmonary arteries, wedge) the tip is.',
+        'Keep fluoroscopy time short. Many centres float a balloon catheter from the jugular vein using pressures alone, with fluoroscopy kept for difficult cases.',
+      ] },
       { h: 'Good practice' },
       { ul: [
         'Zero the transducer to air and level it at the phlebostatic axis (fourth intercostal space, mid-axillary line, roughly the level of the left atrium).',

@@ -192,3 +192,20 @@ button.mini { font-size: 0.8em; padding: 0.15em 0.6em; white-space: nowrap; }
 #paneBtns { position: absolute; left: 0.8em; top: 0.8em; z-index: 3; display: flex; gap: 0.35em; }
 #paneBtns button { padding: 0.25em 0.7em; font-size: 0.85em; }
 #paneBtns button.on { border-color: var(--accent); }
+
+/* ── fluoroscopy ───────────────────────────────────────────────────────── */
+#heartPane.fluoro { background: #000; }
+#heartPane.fluoro #heartMount canvas { filter: grayscale(1) invert(1) contrast(1.25) brightness(0.92) blur(0.4px); }
+#heartPane.fluoro #heartMount::after { /* round image-intensifier field, vignette and quantum noise */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(circle at 50% 46%, transparent 0 40%, #0008 47%, #000 49%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  mix-blend-mode: normal; opacity: 0.9; animation: fl-noise 0.25s steps(3) infinite; }
+@keyframes fl-noise { 0% { background-position: 0 0, 0 0; } 33% { background-position: 0 0, 40px 70px; } 66% { background-position: 0 0, 90px 20px; } }
+@media (prefers-reduced-motion: reduce) { #heartPane.fluoro #heartMount::after { animation: none; } }
+#heartPane.fluoro #chipHeart { color: #e8eef6; border-color: #e8eef655; }
+#carm { position: absolute; left: 0.8em; top: 3em; z-index: 3; display: flex; gap: 0.3em; align-items: center; flex-wrap: wrap; }
+#carm[hidden] { display: none; }
+#carm .cap { font: 600 clamp(9px, 0.72vw, 11px) ui-monospace, Menlo, monospace; letter-spacing: 0.12em; color: var(--muted); }
+#carm button { padding: 0.2em 0.6em; font-size: 0.82em; }
+#paneBtns button.on, #btnFluoro.on { border-color: var(--accent); }
