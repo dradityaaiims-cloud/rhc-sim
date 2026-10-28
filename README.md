@@ -23,7 +23,8 @@ npm run build    # static site in dist/ (relative base, works on GitHub Pages)
 
 ## Controls
 
-W / S (or ↑ / ↓) advance and withdraw (Shift = fine), B balloon, X flush, Enter record, F freeze, A wave labels,
+W / S (or ↑ / ↓) advance and withdraw (Shift = fine), B balloon ([ ] in 0.25 mL steps), Z zero, T thermodilution,
+D blood sample, X flush, K caliper, P PDF report, V fluoroscopy (C cycles the C-arm), U lungs, Enter record, F freeze, A wave labels,
 L 3D labels, R reset, M cycle mode, H help. The Advance, Withdraw and Balloon buttons work with mouse and touch.
 
 ## Modes
@@ -33,7 +34,9 @@ L 3D labels, R reset, M cycle mode, H help. The Advance, Withdraw and Balloon bu
   right internal jugular or femoral vein, with spontaneous or ventilator breathing, sinus or AF rhythm, and optional
   artefacts (catheter whip, over- or underdamping). Bad wedges (under- and over-wedge) and coiling are modelled.
 - **Name that waveform**: catheter and diagnosis hidden; name the site from the trace.
-- **Do the RHC**: record RA, RV, PA and PCW; get TPG, DPG, PVR, the 2022 ESC/ERS PH classification and a score.
+- **Do the RHC**: pre-procedure checklist; zero and level the transducer (it starts unzeroed and off-level); record RA, RV,
+  PA and PCW (or read them yourself with the caliper); measure the output by thermodilution or Fick; a saturation run
+  for shunts; then TPG, DPG, PVR, PAPi, SVR, cardiac index, Qp/Qs, the 2022 ESC/ERS PH classification and a score.
 - **Diagnose the case**: the same on an unknown patient, then pick the diagnosis.
 
 Plus a Learn tab, a guided tour, Boba the rule-based assistant dog, and Model & limits and About pages.

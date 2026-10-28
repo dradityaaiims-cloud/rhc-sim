@@ -21,51 +21,61 @@ export const SITES = {
 // RHC best-practice reviews, Contemporary PAC Part 1 and the 2022 ESC/ERS guidelines. Means are time averages
 // of the generated beat, so they sit close to, not exactly on, the spec's PAd + (PAs − PAd)/3 estimates.
 export const SCENARIOS = [
-  { id: 'normal', name: 'Normal', hr: 75, co: 5.0, resp: 3,
+  { id: 'normal', name: 'Normal', hr: 75, co: 5.0, resp: 3, bp: [120, 75], spo2: 97,
     ra: { a: 7, c: 6, x: 4, v: 6, y: 3, d: 5 }, rv: { s: 24, edp: 4, min: 1 },
     pa: { s: 24, d: 10, notch: 14 }, pcw: { a: 9, c: null, x: 6, v: 11, y: 5, d: 7 },
     summary: 'Normal right heart and wedge pressures. RA a wave slightly taller than v; wedge v slightly taller than a.' },
-  { id: 'tr', name: 'Severe tricuspid regurgitation', hr: 80, co: 3.0, resp: 3, coil: 'tv',
+  { id: 'tr', name: 'Severe tricuspid regurgitation', hr: 80, co: 3.0, resp: 3, bp: [108, 68], spo2: 96, coil: 'tv',
     ra: { a: 15, c: null, x: 15, v: 32, y: 7, d: 12 }, rv: { s: 55, edp: 14, min: 8 },
     pa: { s: 50, d: 25, notch: 32 }, pcw: { a: 13, c: null, x: 10, v: 15, y: 9, d: 11 },
     summary: 'The dilated RA often makes the catheter coil on the first float. A tall, broad systolic "cv" wave in the RA (to about 32) with the x descent lost and a steep y descent: the RA trace looks ventricular. Here with pulmonary hypertension. Thermodilution cardiac output is unreliable in severe TR.' },
-  { id: 'mr', name: 'Severe mitral regurgitation', hr: 88, co: 4.0, resp: 3,
+  { id: 'mr', name: 'Severe mitral regurgitation', hr: 88, co: 4.0, resp: 3, bp: [110, 70], spo2: 95,
     ra: { a: 8, c: 7, x: 4, v: 7, y: 3, d: 5 }, rv: { s: 40, edp: 8, min: 3 },
     pa: { s: 40, d: 24, notch: 28 }, pcw: { a: 15, c: null, x: 11, v: 40, y: 9, d: 12 },
     summary: 'Giant wedge v waves (to about 40) after the T wave, with a raised mean wedge. A big v wave is a clue, not a severity rule: a compliant left atrium can hide it, and a stiff atrium, LV failure or a VSD can produce one without MR.' },
-  { id: 'ms', name: 'Mitral stenosis', hr: 90, co: 3.0, resp: 3,
+  { id: 'ms', name: 'Mitral stenosis', hr: 90, co: 3.0, resp: 3, bp: [110, 72], spo2: 95,
     ra: { a: 13, c: 12, x: 8, v: 11, y: 7, d: 10 }, rv: { s: 45, edp: 10, min: 4 },
     pa: { s: 45, d: 25, notch: 30 }, pcw: { a: 32, c: null, x: 22, v: 26, y: 21, d: 23, fill: 0.85 },
     summary: 'A high mean wedge with a dominant a wave and a slow y descent (the narrowed valve slows left atrial emptying), with secondary pulmonary hypertension. The transmitral gradient itself needs a simultaneous LV pressure.' },
-  { id: 'pah', name: 'Pre-capillary PH (PAH)', hr: 90, co: 3.5, resp: 3, coil: 'pv',
+  { id: 'pah', name: 'Pre-capillary PH (PAH)', hr: 90, co: 3.5, resp: 3, bp: [104, 68], spo2: 93, coil: 'pv',
     ra: { a: 13, c: 10, x: 5, v: 9, y: 5, d: 8 }, rv: { s: 75, edp: 12, min: 4 },
     pa: { s: 75, d: 35, notch: 46 }, pcw: { a: 10, c: null, x: 7, v: 12, y: 6, d: 9 },
     summary: 'High PA and RV systolic pressures with a normal wedge and a high PVR: pre-capillary pulmonary hypertension. Prominent RA a wave from a stiff RV. The dilated RV may make the catheter coil before the pulmonary valve. The RHC defines pre-capillary PH; calling it group 1 PAH needs the full clinical work-up.' },
-  { id: 'hf', name: 'Isolated post-capillary PH (left heart failure)', hr: 85, co: 5.0, resp: 3,
+  { id: 'hf', name: 'Isolated post-capillary PH (left heart failure)', hr: 85, co: 5.0, resp: 3, bp: [108, 70], spo2: 95,
     ra: { a: 8, c: 7, x: 4, v: 7, y: 4, d: 6 }, rv: { s: 42, edp: 10, min: 3 },
     pa: { s: 42, d: 20, notch: 26 }, pcw: { a: 21, c: null, x: 17, v: 25, y: 16, d: 19 },
     summary: 'A high wedge (about 20) with normal wedge morphology, transmitted back to the PA. PVR is normal: isolated post-capillary pulmonary hypertension.' },
-  { id: 'rvi', name: 'RV infarction', hr: 70, co: 2.8, resp: 3,
+  { id: 'rvi', name: 'RV infarction', hr: 70, co: 2.8, resp: 3, bp: [86, 58], spo2: 96,
     ra: { a: 17, c: 16, x: 12, v: 16, y: 11, d: 15 }, rv: { s: 28, edp: 14, min: 5, plateau: true },
     pa: { s: 28, d: 16, notch: 19 }, pcw: { a: 13, c: null, x: 10, v: 14, y: 9, d: 12 },
     summary: 'High RA (about 14) with low-normal PA pressures: RA/PCWP above 0.8 and PAPi below 0.9. The stiff, ischaemic RV gives a sharp early diastolic dip and a rapid rise, with RVEDP close to the wedge.' },
-  { id: 'tamponade', name: 'Cardiac tamponade', hr: 115, co: 3.0, resp: 4,
+  { id: 'tamponade', name: 'Cardiac tamponade', hr: 115, co: 3.0, resp: 4, bp: [92, 72], spo2: 96,
     ra: { a: 18, c: 17, x: 12, v: 17, y: 16.5, d: 17 }, rv: { s: 30, edp: 16, min: 15 },
     pa: { s: 30, d: 20, notch: 22 }, pcw: { a: 18, c: null, x: 14, v: 18, y: 17, d: 17 },
     summary: 'Raised diastolic pressures that equalise within about 5 mmHg (RA, RVEDP, PA diastolic and wedge all near 16 to 20). The x descent is kept but the y descent is absent, because the ventricles cannot fill in early diastole. Tachycardia; pressures still fall with inspiration.' },
-  { id: 'constriction', name: 'Constrictive pericarditis', hr: 95, co: 3.5, resp: 3, kussmaul: true,
+  { id: 'constriction', name: 'Constrictive pericarditis', hr: 95, co: 3.5, resp: 3, bp: [104, 70], spo2: 96, kussmaul: true,
     ra: { a: 20, c: null, x: 10, v: 19, y: 8, d: 19, fill: 0.15 }, rv: { s: 40, edp: 16, min: 3, plateau: true },
     pa: { s: 40, d: 20, notch: 26 }, pcw: { a: 21, c: null, x: 13, v: 22, y: 11, d: 21, fill: 0.15 },
     summary: 'Raised, near-equal diastolic pressures with deep x and very steep y descents (M or W shaped RA), an RV dip and plateau (square root sign) and an RA that rises with inspiration (Kussmaul sign). Telling constriction from restriction needs simultaneous left and right pressures, which this right-heart study cannot show.' },
-  { id: 'af', name: 'Atrial fibrillation', hr: 80, co: 4.0, resp: 3, rhythm: 'af',
+  { id: 'af', name: 'Atrial fibrillation', hr: 80, co: 4.0, resp: 3, bp: [118, 74], spo2: 97, rhythm: 'af',
     ra: { a: 7, c: 6, x: 4, v: 6, y: 3, d: 5 }, rv: { s: 24, edp: 4, min: 1 },
     pa: { s: 24, d: 10, notch: 14 }, pcw: { a: 9, c: null, x: 6, v: 11, y: 5, d: 7 },
     summary: 'Normal pressures in atrial fibrillation: no a waves in the RA or wedge (no organised atrial contraction), no atrial bump before the RV EDP, and an irregularly irregular rhythm, so the v waves and the PA diastolic vary from beat to beat. Average several beats.' },
-  { id: 'hypovolemia', name: 'Hypovolaemia', hr: 110, co: 4.5, resp: 3,
+  { id: 'asd', name: 'Atrial septal defect (left-to-right shunt)', hr: 78, co: 5.0, resp: 3, bp: [118, 74], spo2: 97, shunt: { level: 'ra', qpqs: 2.0 },
+    ra: { a: 7, c: 6, x: 3, v: 7, y: 3, d: 5 }, rv: { s: 32, edp: 6, min: 1 },
+    pa: { s: 32, d: 12, notch: 18 }, pcw: { a: 10, c: null, x: 7, v: 11, y: 6, d: 8 },
+    summary: 'Near-normal pressures with a mildly raised PA systolic from the extra flow. The saturation run shows a step-up of 7% or more from the venae cavae to the RA, and Qp/Qs is about 2. In a shunt, use pulmonary flow (Qp) for PVR.' },
+  { id: 'vsd', name: 'Ventricular septal defect (left-to-right shunt)', hr: 82, co: 5.0, resp: 3, bp: [114, 72], spo2: 97, shunt: { level: 'rv', qpqs: 1.6 },
+    ra: { a: 7, c: 6, x: 3, v: 6, y: 3, d: 5 }, rv: { s: 40, edp: 6, min: 1 },
+    pa: { s: 40, d: 16, notch: 24 }, pcw: { a: 12, c: null, x: 9, v: 15, y: 8, d: 10 },
+    summary: 'RA saturation matches the cavae, then a step-up of 5% or more in the RV and PA. PA pressure is raised by the shunt flow and the left atrium is volume loaded (higher wedge v wave). Qp/Qs about 1.6.' },
+  { id: 'hypovolemia', name: 'Hypovolaemia', hr: 110, co: 4.5, resp: 3, bp: [90, 58], spo2: 98,
     ra: { a: 2, c: 1.5, x: 0, v: 2, y: 0, d: 1 }, rv: { s: 16, edp: 1, min: 0 },
     pa: { s: 16, d: 4, notch: 7 }, pcw: { a: 4, c: null, x: 2, v: 4, y: 1, d: 3 },
     summary: 'Low filling pressures throughout (RA about 1, wedge about 3) with a compensatory tachycardia.' },
 ];
+// shared physiology for oximetry, Fick and vitals (an average adult)
+export const PHYS = { hb: 14, bsa: 1.9, vo2: 240, pvSat: 98 };
 export const scenario = (id) => SCENARIOS.find((s) => s.id === id) || SCENARIOS[0];
 
 /** ECG-referenced event times (s from P-wave onset) for a heart rate. */
@@ -159,7 +169,7 @@ export const inspiration = (t, period = 4.5) => 0.5 - 0.5 * Math.cos((2 * Math.P
 /** Pressure (mmHg) at `site` at time t (s). Spontaneous inspiration lowers intrathoracic pressure,
  *  except the RA and cavae in constriction (Kussmaul sign); a positive-pressure breath raises it.
  *  Either way the end-expiratory value is what measure() reports. */
-export function pressureAt(sc, site, t, { resp = true, vent = false, af = isAF(sc), owSecs = 0 } = {}) {
+export function pressureAt(sc, site, t, { resp = true, vent = false, af = isAF(sc), owSecs = 0, ectopic = null } = {}) {
   let p;
   if (site === 'puw') p = 0.5 * (pressureAt(sc, 'pa', t, { resp: false, af }) + pressureAt(sc, 'pcw', t, { resp: false, af })); // partial occlusion: PA and wedge mixed
   else if (site === 'ow') { // over-wedge: tip against the wall, pressure climbs with no a or v waves
@@ -172,28 +182,27 @@ export function pressureAt(sc, site, t, { resp = true, vent = false, af = isAF(s
     const k = Math.min(1, ph / 0.08), ease = 1 - k * k * (3 - 2 * k);
     p = c.f(ph) + (prev.f(-1e-3) - c.f(0)) * ease;
   }
+  if (ectopic && (site === 'rv' || site === 'pa')) { // a PVC ejects less: a smaller pulse that beat
+    const b = beatAt(sc, t, af);
+    if (ectopic.has(b.n)) { const base = pressureAt(sc, site, b.start, { resp: false, af }); p = base + (p - base) * 0.65; }
+  }
   if (resp && sc.resp) p += (vent || (sc.kussmaul && ['ra', 'svc', 'ivc'].includes(site)) ? 1 : -1) * sc.resp * inspiration(t);
   return p;
 }
 
 const g = (t, mu, s) => Math.exp(-0.5 * ((t - mu) / s) ** 2);
-/** Lead II-like ECG (mV). */
-export function ecgAt(sc, t, { af = isAF(sc) } = {}) {
-  if (af) { // no P waves; fine fibrillatory baseline; QRS and T from each irregular beat
-    const b = beatAt(sc, t, true), T = timing(sc.hr), ph = t - b.start;
-    let v = 0.035 * Math.sin(2 * Math.PI * 5.3 * t) + 0.025 * Math.sin(2 * Math.PI * 7.1 * t + 1);
-    for (const x of [ph, ph + b.prevRR]) {
-      v += -0.1 * g(x, T.tR - 0.022, 0.007) + 1.1 * g(x, T.tR, 0.009) - 0.25 * g(x, T.tR + 0.024, 0.009) + 0.3 * g(x, T.tR + T.QT - 0.1, 0.045);
-    }
-    return v;
-  }
-  const T = timing(sc.hr);
-  const ph = ((t % T.RR) + T.RR) % T.RR;
-  let v = 0;
-  for (const x of [ph - T.RR, ph, ph + T.RR]) {
-    v += 0.15 * g(x, T.tP, 0.022) - 0.1 * g(x, T.tR - 0.022, 0.007) + 1.1 * g(x, T.tR, 0.009)
-      - 0.25 * g(x, T.tR + 0.024, 0.009) + 0.3 * g(x, T.tR + T.QT - 0.1, 0.045);
-  }
+// one beat's ECG at time x after the beat start; a PVC is wide and bizarre with no P wave and a discordant T
+function beatEcg(x, T, pvc, af) {
+  if (pvc) return 1.3 * g(x, T.tR + 0.01, 0.028) - 0.7 * g(x, T.tR + 0.075, 0.03) - 0.45 * g(x, T.tR + T.QT - 0.04, 0.07);
+  return (af ? 0 : 0.15 * g(x, T.tP, 0.022)) - 0.1 * g(x, T.tR - 0.022, 0.007) + 1.1 * g(x, T.tR, 0.009)
+    - 0.25 * g(x, T.tR + 0.024, 0.009) + 0.3 * g(x, T.tR + T.QT - 0.1, 0.045);
+}
+/** Lead II-like ECG (mV). AF: fibrillatory baseline, no P waves. `ectopic`: beat numbers that are PVCs. */
+export function ecgAt(sc, t, { af = isAF(sc), ectopic = null } = {}) {
+  const b = beatAt(sc, t, af), T = timing(sc.hr), ph = t - b.start, pvc = (n) => !!ectopic?.has(n);
+  let v = af ? 0.035 * Math.sin(2 * Math.PI * 5.3 * t) + 0.025 * Math.sin(2 * Math.PI * 7.1 * t + 1) : 0;
+  v += beatEcg(ph, T, pvc(b.n), af) + beatEcg(ph + b.prevRR, T, pvc(b.n - 1), af);
+  if (!af) v += beatEcg(ph - b.RR, T, pvc(b.n + 1), af);
   return v;
 }
 
@@ -253,7 +262,7 @@ export function formatReading(m) {
 
 /** Derived haemodynamics from recorded readings. PVR in Wood units. */
 export function derive({ pa, pcw, ra }, co) {
-  if (!pa || !pcw) return null;
+  if (!pa || !pcw || !co) return null;
   const tpg = pa.mean - pcw.mean, pvr = Math.round((tpg / co) * 10) / 10;
   const papi = ra?.mean > 0 ? Math.round(((pa.sys - pa.dia) / ra.mean) * 100) / 100 : null;
   return { mpap: pa.mean, pcwp: pcw.mean, rap: ra?.mean, tpg, dpg: pa.dia - pcw.mean, pvr, co, papi, ph: classifyPH(pa.mean, pcw.mean, pvr) };

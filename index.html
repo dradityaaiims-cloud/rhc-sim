@@ -40,7 +40,15 @@
         <div id="roSite"></div>
         <div id="roVals"></div>
         <div id="roMeta"></div>
+        <div id="vitals"></div>
       </div>
+      <div id="tx" aria-label="Pressure transducer">
+        <span class="cap">TRANSDUCER</span>
+        <button id="btnZero" class="on" title="Zero to air (Z)">Zero <kbd>Z</kbd></button>
+        <label title="Height of the transducer relative to the phlebostatic axis">Height <input id="txH" type="range" min="-15" max="15" step="1" value="0" aria-label="Transducer height (cm from the phlebostatic axis)"> <span id="txHv">0 cm</span></label>
+        <span id="txWarn" class="chip warn" hidden></span>
+      </div>
+      <div id="lab" hidden></div>
       <div id="notice" hidden></div>
     </section>
 
@@ -52,8 +60,10 @@
       <div id="carm" hidden aria-label="C-arm view"><span class="cap">C-ARM</span></div>
       <div id="drive">
         <button id="btnWithdraw" title="Withdraw (S)">◀ Withdraw <kbd>S</kbd></button>
-        <button id="btnBalloon" title="Inflate / deflate the balloon (B)">Balloon <kbd>B</kbd></button>
+        <span class="syringe"><button id="btnVolDown" title="Let 0.25 mL out ([)">−</button><button id="btnBalloon" title="Fill to 1.5 mL / let all out (B)">Balloon <kbd>B</kbd><br><small id="volText">0.00 mL</small></button><button id="btnVolUp" title="Add 0.25 mL (])">+</button></span>
         <button id="btnFlush" title="Flush the line (X)">Flush <kbd>X</kbd></button>
+        <button id="btnThermo" title="Thermodilution: inject 10 mL cold saline with the tip in the PA (T)">Thermo <kbd>T</kbd></button>
+        <button id="btnSample" title="Draw a blood sample for oxygen saturation (D)">Sample <kbd>D</kbd></button>
         <button id="btnAdvance" title="Advance (W)">Advance <kbd>W</kbd> ▶</button>
       </div>
       <div id="hiddenCat" hidden>Catheter hidden</div>
@@ -71,7 +81,10 @@
       <p class="warn">Educational use only. Not a medical device, not for clinical use or interpretation. No patient data.</p>
       <table>
         <tr><td><kbd>W</kbd> / <kbd>S</kbd> or <kbd>↑</kbd> / <kbd>↓</kbd></td><td>Advance / withdraw the catheter (hold <kbd>Shift</kbd> for fine control)</td></tr>
-        <tr><td><kbd>B</kbd></td><td>Inflate / deflate the balloon</td></tr>
+        <tr><td><kbd>B</kbd>, <kbd>[</kbd> <kbd>]</kbd></td><td>Balloon: fill to 1.5 mL or let all the air out; [ and ] take out or add 0.25 mL. Inflate slowly at the wedge: stop when the wedge trace appears.</td></tr>
+        <tr><td><kbd>Z</kbd></td><td>Zero the transducer to air; set its height to the phlebostatic axis with the slider on the monitor</td></tr>
+        <tr><td><kbd>T</kbd></td><td>Thermodilution: inject cold saline with the tip in the PA and the balloon down (three within 10%)</td></tr>
+        <tr><td><kbd>D</kbd></td><td>Draw a blood sample at the tip for the saturation run (SVC, IVC, RA, RV, PA, wedge)</td></tr>
         <tr><td><kbd>Enter</kbd></td><td>Do the RHC, Diagnose the case: record the reading at this site. Quiz: next question</td></tr>
         <tr><td><kbd>1</kbd>–<kbd>4</kbd></td><td>Name that waveform: answer</td></tr>
         <tr><td><kbd>X</kbd></td><td>Flush the line (clears over- and underdamping; never while wedged)</td></tr>

@@ -209,3 +209,27 @@ button.mini { font-size: 0.8em; padding: 0.15em 0.6em; white-space: nowrap; }
 #carm .cap { font: 600 clamp(9px, 0.72vw, 11px) ui-monospace, Menlo, monospace; letter-spacing: 0.12em; color: var(--muted); }
 #carm button { padding: 0.2em 0.6em; font-size: 0.82em; }
 #paneBtns button.on, #btnFluoro.on { border-color: var(--accent); }
+
+/* ── transducer, vitals, lab, syringe ─────────────────────────────────── */
+#vitals { margin-top: 0.25em; font: 600 clamp(10px, 0.85vw, 13px) ui-monospace, Menlo, monospace; color: #ff8fa3; white-space: pre; }
+#tx { position: absolute; left: 0.8em; bottom: 0.6em; z-index: 3; display: flex; align-items: center; gap: 0.4em; flex-wrap: wrap; background: #0b1119dd; border: 1px solid var(--line); border-radius: 8px; padding: 0.25em 0.5em; font-size: clamp(10px, 0.8vw, 12px); }
+#tx .cap { font: 600 0.85em ui-monospace, monospace; letter-spacing: 0.12em; color: var(--muted); }
+#tx button { padding: 0.15em 0.55em; font-size: 0.9em; }
+#tx button.on { border-color: var(--accent); }
+#tx input[type=range] { width: 7em; accent-color: var(--accent); vertical-align: middle; }
+#txWarn { position: static; }
+#txWarn[hidden], #lab[hidden] { display: none; }
+#lab { position: absolute; right: 0.8em; bottom: 3.2em; z-index: 3; width: min(19em, 48%); background: #0b1119ee; border: 1px solid #6aa8ff66; border-radius: 8px; padding: 0.4em 0.6em; font-size: clamp(10px, 0.8vw, 12px); line-height: 1.4; }
+#lab .cap { font: 600 0.85em ui-monospace, monospace; letter-spacing: 0.12em; color: #6aa8ff; }
+#lab canvas { width: 100%; height: auto; display: block; background: #03080a; border-radius: 4px; margin: 0.2em 0; }
+#lab .warn { color: var(--accent-2); }
+#drive { flex-wrap: wrap; justify-content: center; width: max-content; max-width: 95%; }
+.syringe { display: inline-flex; }
+.syringe button { border-radius: 0; }
+.syringe button:first-child { border-radius: 8px 0 0 8px; } .syringe button:last-child { border-radius: 0 8px 8px 0; }
+#btnBalloon small { font-size: 0.75em; opacity: 0.85; }
+#modePanel .checks { display: grid; gap: 0.3em; flex: 1 1 30em; }
+#modePanel .checks button { text-align: left; }
+#modePanel .checks button.right { border-color: var(--good); background: #0f3a2f; }
+#modePanel .measure { display: flex; flex-wrap: wrap; gap: 0.5em; align-items: center; flex: 1 1 100%; }
+#modePanel .measure input { width: 4.5em; font: inherit; background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 0.25em 0.4em; }

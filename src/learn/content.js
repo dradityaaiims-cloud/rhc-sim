@@ -128,6 +128,37 @@ export const SECTIONS = [
     ],
   },
   {
+    id: 'lab',
+    title: 'Doing it properly: zero, measure, output, saturations',
+    blocks: [
+      { h: 'Before you start' },
+      { ul: [
+        'Time-out: identity, consent, procedure and side, allergies, anticoagulation.',
+        'Monitoring: ECG, pulse oximetry and blood pressure throughout.',
+        'Flush every lumen with heparinised saline and remove all air.',
+        'Test the balloon under saline with 1.5 mL: it should inflate symmetrically, without a leak.',
+        'Zero the transducer to air and level it at the phlebostatic axis. Every 1 cm off the axis adds or removes about 0.75 mmHg from every reading; an unzeroed line can drift by several mmHg. In Do the RHC the line starts unzeroed and off-level on purpose.',
+      ] },
+      { h: 'Balloon volume' },
+      { p: 'Float with about 1.5 mL. At the wedge, inflate slowly and stop as soon as the wedge trace appears: a true wedge usually needs about 1 mL. A wedge with very little air (under about 0.75 mL) suggests the tip is far out in a small branch, the position that risks over-wedging and rupture; withdraw about 1 cm. Never exceed 1.5 mL, deflate passively, and check the PA trace returns.' },
+      { h: 'Reading the numbers yourself' },
+      { p: 'Tick "I will read the pressures myself" in Do the RHC. Freeze the monitor (F), switch on the caliper (K) and read the a and v waves, the systolic, diastolic and mean pressures and the RV end-diastolic pressure at end-expiration. Your numbers are recorded and compared with the trace (within 3 mmHg).' },
+      { h: 'Cardiac output' },
+      { ul: [
+        'Thermodilution (T): 10 mL of cold saline into the proximal port with the thermistor in the PA and the balloon down. The output is inversely proportional to the area under the cooling curve (Stewart-Hamilton). Do three and accept them if they agree within 10%. It is unreliable in severe tricuspid regurgitation and with intracardiac shunts.',
+        'Fick: Qs = VO2 / (10 × 1.34 × Hb × (SaO2 − SvO2)). Here VO2 is assumed (240 mL/min, Hb 14 g/dL). With a shunt, the mixed venous saturation comes from the cavae (Flamm: (3 × SVC + IVC) / 4), and Qp = VO2 / (10 × 1.34 × Hb × (SpvO2 − SpaO2)).',
+      ] },
+      { h: 'Saturation run' },
+      { p: 'Draw blood (D) at each site: SVC, IVC, RA, RV and PA. A step-up of 7% or more at the atrial level, or 5% or more at the ventricular or PA level, means a left-to-right shunt there. A sample from a true wedge is about 97 to 98% saturated; under 88% suggests an under-wedge.' },
+      { table: { head: ['Scenario', 'What to look for', 'Id'], go: 2, rows: [
+        ['Atrial septal defect', 'Step-up from the cavae to the RA; Qp/Qs about 2.', 'asd'],
+        ['Ventricular septal defect', 'Step-up from the RA to the RV; Qp/Qs about 1.6; raised PA pressure.', 'vsd'],
+      ] } },
+      { h: 'Ectopy' },
+      { p: 'Ventricular ectopic beats are common while the tip is in the RV, more when it is moving, and short runs of VT occur if it stays there. Float through promptly; if a run persists, withdraw to the RA.' },
+    ],
+  },
+  {
     id: 'calc',
     title: 'Calculations and pulmonary hypertension',
     blocks: [
@@ -136,6 +167,8 @@ export const SECTIONS = [
         ['Diastolic pressure gradient (DPG)', 'PA diastolic − PCWP', '< 6 mmHg'],
         ['Pulmonary vascular resistance (PVR)', '(mPAP − PCWP) / CO', '< 2 Wood units'],
         ['Cardiac index', 'CO / body surface area', '2.5-4.0 L/min/m²'],
+        ['Systemic vascular resistance (SVR)', '(MAP − RAP) / CO', '10-20 WU (800-1600 dyn·s·cm⁻⁵)'],
+        ['Shunt ratio', 'Qp/Qs = (SaO2 − SmvO2) / (SpvO2 − SpaO2)', 'about 1 (no shunt)'],
         ['PA pulsatility index (PAPi)', '(PA systolic − PA diastolic) / RA', '> 2 (< 0.9 in RV infarction)'],
       ] } },
       { h: '2022 ESC/ERS definitions' },

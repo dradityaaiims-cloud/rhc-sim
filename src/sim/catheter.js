@@ -49,7 +49,7 @@ export class Catheter {
     this.path = buildPath(access);
     this.s = 1;              // cm along the path from the sheath
     this.slack = 0;          // cm coiled up behind the tip (adds to depth, not to position)
-    this.balloon = false;
+    this.vol = 0;            // mL of air in the balloon (0 to 1.5)
     this.notice = null;      // last teaching message from a blocked move
     this.wedgeSecs = 0; this.owSecs = 0;
     this.coilArmed = !!this.coilGate; this.coiled = false;
@@ -59,10 +59,21 @@ export class Catheter {
   /** Scenario anatomy: 'tv' = dilated RA (coils before the tricuspid on the first float), 'pv' = dilated RV. */
   setCoil(gate) { this.coilGate = gate || null; this.coilArmed = !!gate; }
 
-  /** Where the tip is reading. With the balloon up in the distal branch: under-wedge, wedge or over-wedge. */
+  get balloon() { return this.vol > 0; }
+  set balloon(v) { this.vol = v ? BALLOON_ML : 0; }
+  /** Enough air for the flow to carry the tip across a valve. */
+  get floats() { return this.vol >= 1; }
+  /** Air needed to occlude the branch here: more proximally (wider vessel), less distally. */
+  needed(s = this.s) { const wz = this.path.wedgeZone; return s < wz ? 1 + (wz - s) * 0.8 : Math.max(0.3, 1 - (s - wz) * 0.6); }
+
+  /** Where the tip is reading. With air in the balloon in the distal branch: partial (under-) wedge, wedge or over-wedge. */
   get site() {
     const P = this.path, wz = P.wedgeZone;
-    if (this.balloon && this.s >= wz - PUW) return this.s < wz ? 'puw' : this.s <= wz + OW ? 'pcw' : 'ow';
+    if (this.vol > 0 && this.s >= wz - PUW) {
+      const need = this.needed();
+      if (this.vol >= need) return this.s <= wz + OW ? 'pcw' : 'ow';
+      if (this.vol >= 0.6 * need) return 'puw';
+    }
     if (this.s >= P.pv) return 'pa';
     if (this.s >= P.tv) return 'rv';
     if (this.s >= P.raEntry) return 'ra';
@@ -79,16 +90,16 @@ export class Catheter {
     let s = Math.min(P.total - 0.3, Math.max(0.5, s0 + ds));
     if (ds > 0) {
       const gate = s0 < P.tv && s >= P.tv ? 'tv' : s0 < P.pv && s >= P.pv ? 'pv' : null;
-      const coil = gate && (!this.balloon || (this.coilArmed && this.coilGate === gate));
+      const coil = gate && (!this.floats || (this.coilArmed && this.coilGate === gate));
       if (coil) {
         // the tip stays put and the extra length loops up in the chamber
         const at = gate === 'tv' ? P.tv : P.pv;
         this.slack = Math.min(MAX_SLACK, this.slack + (s - at + 0.05)); s = at - 0.05;
-        if (this.balloon) this.coiled = true;
+        if (this.floats) this.coiled = true;
         const where = gate === 'tv' ? 'No RV trace and the depth keeps rising: the catheter is coiling in the right atrium.' : 'No PA trace and the depth keeps rising: the catheter is coiling in the right ventricle.';
-        if (!this.balloon && this.slack <= 8) this.notice = gate === 'tv' ? 'Without the balloon the tip curls in the right atrium. Inflate it (B) so the blood flow carries it across the tricuspid valve.' : 'The tip is bouncing in the RV outflow tract. Inflate the balloon (B) to float it through the pulmonary valve.';
+        if (!this.floats && this.slack <= 8) this.notice = gate === 'tv' ? 'Without the balloon the tip curls in the right atrium. Inflate it (B) so the blood flow carries it across the tricuspid valve.' : 'The tip is bouncing in the RV outflow tract. Inflate the balloon (B) to float it through the pulmonary valve.';
         else if (this.slack > 8) this.notice = `${where} Deflate, withdraw to about 20 cm and float again.`;
-      } else if (this.balloon && s > wz + CAP) { s = Math.max(s0, wz + CAP); this.notice = 'The balloon will not go further: it is jammed in a small branch. Withdraw about 1 cm.'; }
+      } else if (this.vol >= this.needed(Math.min(s, wz + CAP)) && s > wz + CAP) { s = Math.max(s0, wz + CAP); this.notice = 'The balloon will not go further: it is jammed in a small branch. Withdraw about 1 cm.'; }
       else if (!this.balloon && s > wz + 1.5) { s = Math.max(s0, wz + 1.5); this.notice = 'A deflated tip should not be pushed this far out. Inflate the balloon and let it float to the wedge position.'; }
     } else if (ds < 0 && this.balloon) {
       // never pull an inflated balloon back through a valve
@@ -101,10 +112,16 @@ export class Catheter {
     return this.notice;
   }
 
-  toggleBalloon() {
-    if (!this.balloon && this.depth < MIN_INFLATE_DEPTH) { this.notice = 'Inflate only once the tip is beyond the introducer sheath (about 15 to 20 cm), in the vena cava or right atrium.'; return false; }
-    this.balloon = !this.balloon; return this.balloon;
+  /** Set the syringe volume (mL). Air goes in only beyond the sheath, and never more than 1.5 mL. */
+  setVolume(v) {
+    v = Math.round(v * 100) / 100;
+    if (v > this.vol && this.depth < MIN_INFLATE_DEPTH) { this.notice = 'Inflate only once the tip is beyond the introducer sheath (about 15 to 20 cm), in the vena cava or right atrium.'; return this.vol; }
+    if (v > BALLOON_ML) this.notice = '1.5 mL is the maximum for this balloon: it is a limit, not a target.';
+    this.vol = Math.min(BALLOON_ML, Math.max(0, v));
+    return this.vol;
   }
+  /** B: fill the syringe to 1.5 mL, or let it deflate passively. */
+  toggleBalloon() { this.setVolume(this.vol > 0 ? 0 : BALLOON_ML); return this.balloon; }
 
   setArtefact(kind) { this.artefact = kind; this.artefactAt = this.s; }
 

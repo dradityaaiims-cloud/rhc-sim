@@ -70,3 +70,12 @@ test('whip clears after a 1 cm reposition; flushing fixes damping but never whil
   c.setArtefact('over'); floatTo(c, 'pcw'); assert.equal(c.flush(), 'unsafe'); assert.equal(c.artefact, 'over');
   c.toggleBalloon(); assert.equal(c.flush(), 'fixed'); assert.equal(c.artefact, 'none');
 });
+test('balloon volume: floats only with ~1 mL or more; wedges at about 1 mL; tiny volume wedge is deep; 1.5 mL max', () => {
+  const c = new Catheter('rij'); drive(c, 24); c.setVolume(0.6); drive(c, 10); assert.equal(c.site, 'ra', 'too little air to float');
+  c.setVolume(2.0); assert.equal(c.vol, 1.5); assert.match(c.notice, /maximum/);
+  floatTo(c, 'pa'); c.setVolume(0); while (c.s < c.path.wedgeZone) c.advance(0.1);
+  c.setVolume(0.5); assert.equal(c.site, 'pa');
+  c.setVolume(0.75); assert.equal(c.site, 'puw');
+  c.setVolume(1.0); assert.equal(c.site, 'pcw');
+  c.setVolume(0); drive(c, 0.6); c.setVolume(0.7); assert.equal(c.site, 'pcw', 'deeper in, less air wedges');
+});

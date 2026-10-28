@@ -7,15 +7,16 @@ import { SCENARIOS } from '../src/sim/hemo.js';
 
 const full = Object.fromEntries(RECORD_SITES.map((s) => [s, { site: s }]));
 test('a clean, quick, complete run scores 100', () => {
-  assert.equal(scoreRun({ recorded: full, blocked: 0, pullbacks: 0, wedgeMax: 8, secs: 90 }).total, 100);
+  assert.equal(scoreRun({ recorded: full, blocked: 0, pullbacks: 0, wedgeMax: 8, secs: 90, prep: 1, coMeasured: true }).total, 100);
 });
 test('unsafe habits cost points and get teaching notes', () => {
-  const r = scoreRun({ recorded: full, blocked: 2, pullbacks: 1, wedgeMax: 40, secs: 300 });
-  assert.equal(r.total, 60 + 5 + 6 + 0);
+  const r = scoreRun({ recorded: full, blocked: 2, pullbacks: 1, wedgeMax: 40, secs: 400, prep: 0, coMeasured: false });
+  assert.equal(r.total, 40 + 0 + 0 + 5 + 6 + 0);
+  assert.ok(r.notes.some((n) => /checklist/.test(n)) && r.notes.some((n) => /cardiac output/.test(n)));
   assert.ok(r.notes.some((n) => /deflate/i.test(n)) && r.notes.some((n) => /wedged for 40/.test(n)));
 });
 test('diagnosis is worth 20 of 100 in the game', () => {
-  const base = { recorded: full, blocked: 0, pullbacks: 0, wedgeMax: 5, secs: 60 };
+  const base = { recorded: full, blocked: 0, pullbacks: 0, wedgeMax: 5, secs: 60, prep: 1, coMeasured: true };
   assert.equal(scoreRun({ ...base, diagnosis: true }).total, 100);
   assert.equal(scoreRun({ ...base, diagnosis: false }).total, 80);
 });
@@ -26,7 +27,7 @@ test('waveform questions use recordable sites and real scenarios', () => {
   for (let i = 0; i < 50; i++) { const q = waveformQuestion(); assert.ok(RECORD_SITES.includes(q.site)); assert.ok(SCENARIOS.some((s) => s.id === q.scenarioId)); }
 });
 
-const ctx = (o = {}) => ({ t: 10, mode: 'explore', site: 'svc', balloon: false, notice: null, wedgeSecs: 0, scenario: 'normal', artefact: 'none', af: false, slack: 0,
+const ctx = (o = {}) => ({ t: 10, mode: 'explore', site: 'svc', balloon: false, notice: null, wedgeSecs: 0, scenario: 'normal', artefact: 'none', af: false, slack: 0, offset: 0, vol: 0, tdCount: 0,
   flags: { usedFluoro: true, moved: true, balloonUsed: true, usedWaves: true, usedFreeze: true, openedLearn: true, toured: true, changedScenario: true, recorded: true }, quiz: null, ...o });
 test('Boba stays quiet for a calm, experienced user', () => { assert.equal(nextRule(ctx(), new Map(), Date.now()), null); });
 test('Boba warns about a long wedge first', () => { assert.equal(nextRule(ctx({ site: 'pcw', wedgeSecs: 25 }), new Map(), Date.now())?.id, 'wedge-long'); });
@@ -44,8 +45,8 @@ test('every rule, tip and learn section has text', () => {
   for (const id of ids) assert.ok(SCENARIOS.some((s) => s.id === id), id);
 });
 test('an invalid wedge or uncorrected artefact costs points and explains why', () => {
-  const r = scoreRun({ recorded: full, blocked: 0, pullbacks: 0, flushWedged: 1, wedgeMax: 5, secs: 60, flaws: { pcw: 'Under-wedged (catheter too proximal): the wedge you recorded was not valid.' } });
-  assert.equal(r.total, 100 - 7 - 5);
+  const r = scoreRun({ recorded: full, blocked: 0, pullbacks: 0, flushWedged: 1, wedgeMax: 5, secs: 60, prep: 1, coMeasured: true, flaws: { pcw: 'Under-wedged (catheter too proximal): the wedge you recorded was not valid.' } });
+  assert.equal(r.total, 100 - 5 - 5);
   assert.ok(r.notes.some((n) => /Under-wedged/.test(n)) && r.notes.some((n) => /flush/.test(n)));
 });
 test('Boba names the trace problem in explore but not in the graded case', () => {
@@ -53,4 +54,8 @@ test('Boba names the trace problem in explore but not in the graded case', () =>
   assert.equal(nextRule(ctx({ site: 'pa', artefact: 'whip' }), new Map(), Date.now())?.id, 'whip');
   assert.equal(nextRule(ctx({ mode: 'case', site: 'pa', artefact: 'whip' }), new Map(), Date.now()), null);
   assert.equal(nextRule(ctx({ site: 'ra', notice: 'No RV trace and the depth keeps rising: the catheter is coiling in the right atrium.' }), new Map(), Date.now())?.id, 'coil');
+});
+test('Boba flags an unzeroed transducer and a small-volume wedge', () => {
+  assert.equal(nextRule(ctx({ offset: 9 }), new Map(), Date.now())?.id, 'zero');
+  assert.equal(nextRule(ctx({ site: 'pcw', balloon: true, vol: 0.5 }), new Map(), Date.now())?.id, 'small-vol');
 });

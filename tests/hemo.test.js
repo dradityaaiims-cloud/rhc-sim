@@ -110,3 +110,10 @@ test('under-wedge mixes PA and wedge (mean above PA diastolic); over-wedge climb
   assert.ok(puw.mean > measure(sc, 'pcw').mean && puw.mean < pa.mean);
   assert.ok(pressureAt(sc, 'ow', 1, { resp: false, owSecs: 8 }) > pressureAt(sc, 'ow', 1, { resp: false, owSecs: 0.5 }) + 8);
 });
+test('a PVC beat is wide on the ECG and ejects a smaller RV pulse', () => {
+  const sc = scenario('normal'), T = timing(sc.hr), ect = new Set([3]);
+  const width = (opts) => { let n = 0; for (let t = 3 * T.RR; t < 3 * T.RR + T.RR; t += 0.002) if (Math.abs(ecgAt(sc, t, opts)) > 0.5) n++; return n * 2; };
+  assert.ok(width({ ectopic: ect }) > 2 * width({}), 'wide QRS (ms above 0.5 mV)');
+  const sys = (opts) => Math.max(...Array.from({ length: 200 }, (_, i) => pressureAt(sc, 'rv', 3 * T.RR + (i / 200) * T.RR, { resp: false, ...opts })));
+  assert.ok(sys({ ectopic: ect }) < sys({}) - 5);
+});
