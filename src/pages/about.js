@@ -18,6 +18,8 @@ const ME = {
   apps: [
     ["Dr. Singh's Vent Sim (mechanical ventilator simulator)", 'https://dradityaaiims-cloud.github.io/vent-sim/'],
     ["Dr. Singh's Bronch Sim (bronchoscopy simulator)", 'https://dradityaaiims-cloud.github.io/bronchoscopy-sim/'],
+    ["Dr. Singh's Art Line Sim (arterial line and transducer simulator)", 'https://dradityaaiims-cloud.github.io/artline-sim/'],
+    ["Dr. Singh's EP Sim (electrophysiology study and pacemaker simulator)", 'https://dradityaaiims-cloud.github.io/ep-sim/'],
   ],
 };
 
